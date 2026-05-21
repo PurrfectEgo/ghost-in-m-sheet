@@ -133,6 +133,13 @@
 		// predating static-plan hunt houses.
 		pendingHuntHouseId: function () { return null; },
 
+		// Witch contract storefront. `offered` is rebuilt the first
+		// time the player opens the board each in-game day; `held`
+		// is the key the player has paid for and not yet used.
+		// Saves predating the contract relaunch get an empty board
+		// + no held key; ensureFresh fills the offered list lazily.
+		contracts: function () { return { offered: [], held: null, lastRefreshDay: -1 }; },
+
 		// Per-day seed; regenerated on every 24h rollover.
 		dailySeed:     function () { return Math.floor(Math.random() * 0x100000000); },
 
@@ -144,11 +151,12 @@
 
 	// mc sub-fields added after launch -- missing on very old saves
 	var MC_DEFAULTS = {
-		fit:            0,
-		exhibitionism:  0,
-		lustMax:        100,
-		beautyBase:     30,
-		beautyModifier: 0
+		fit:               0,
+		exhibitionism:     0,
+		lustMax:           100,
+		beautyBase:        30,
+		beautyModifier:    0,
+		possessionResidue: 0
 	};
 
 	function applyDefaults (vars) {

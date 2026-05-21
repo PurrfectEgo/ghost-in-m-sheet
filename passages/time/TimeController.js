@@ -1,6 +1,6 @@
 /*
- * Centralized helpers for the in-game clock / weather state:
- *   $hours, $minutes, $meridiem, $temperature, $dailySeed
+ * Centralized helpers for the in-game clock state:
+ *   $hours, $minutes, $meridiem, $dailySeed
  *
  * Any passage that needs to read or set the clock should route
  * through setup.Time. The mutation widgets <<addTime>> / <<addLust>>
@@ -19,7 +19,7 @@ setup.Time = (function () {
 	/* Variables owned by this controller. Other controllers should
 	   query/mutate these only through the API methods below. */
 	var OWNED_VARS = Object.freeze([
-		'hours', 'minutes', 'meridiem', 'temperature', 'dailySeed'
+		'hours', 'minutes', 'meridiem', 'dailySeed'
 	]);
 
 	var sv = setup.sv;
@@ -58,11 +58,16 @@ setup.Time = (function () {
 
 		// --- Scheduled in-world actions ---------------------
 		// Reset the clock to midnight (used when a hunt starts
-		// from the haunted-house street). Bypasses the rollover
-		// hook: this is a discontinuous reset, not a wraparound.
+		// from the haunted-house street). Bypasses the hours
+		// writeHook to skip its 24h wraparound branch -- this is
+		// a discontinuous reset, not a wraparound -- but still
+		// reseeds $dailySeed so day-keyed content (the witch's
+		// contract board, future per-day cursors) treats the
+		// reset as the start of a fresh day.
 		resetToMidnight: function () {
 			sv().hours = 0;
 			sv().minutes = 0;
+			sv().dailySeed = freshSeed();
 		},
 		// Sleep/wake paths advance N hours and want a "did the
 		// day roll over" answer. addHours already returns it via
@@ -96,7 +101,6 @@ setup.Time = (function () {
 			return false;
 		} },
 		'meridiem',
-		'temperature',
 		'dailySeed'
 	]);
 

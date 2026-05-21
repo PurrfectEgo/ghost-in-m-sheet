@@ -41,7 +41,7 @@
 <<if _staticHouse and _staticHouse.description>>
 	@@.mc-thoughts; <<= _staticHouse.description>>@@<br>
 <<else>>
-	@@.mc-thoughts; A fresh hunt is waiting.@@<br>
+	@@.mc-thoughts; You stand on the porch a beat longer than you need to. Key in your pocket, still cold. That part won't last.@@<br>
 <</if>>
 <br>
 <<if _modifiers.length>>
@@ -185,21 +185,34 @@
 	<<set _FR to setup.HuntController.FailureReason>>
 
 	<<if _summary.success>>
-		@@.notmc-speech; The ghosts were no match for you. Hunt #<<= _summary.number>> closes clean.@@<br>
+		@@.notmc-speech; Clean exit. Hunt #<<= _summary.number>> filed away.@@<br>
 	<<elseif _summary.failureReason eq _FR.SANITY>>
-		@@.notmc-speech; Your mind gives out. Hunt #<<= _summary.number>> ends with sanity gone.@@<br>
+		@@.notmc-speech; Head goes first. Hunt #<<= _summary.number>> closes on a stretcher.@@<br>
 	<<elseif _summary.failureReason eq _FR.EXHAUSTION>>
-		@@.notmc-speech; Your legs give out. Hunt #<<= _summary.number>> ends in exhaustion.@@<br>
+		@@.notmc-speech; Legs went out from under you. Hunt #<<= _summary.number>> closes in a slump.@@<br>
 	<<elseif _summary.failureReason eq _FR.TIME>>
-		@@.notmc-speech; Dawn breaks before the answer does. Hunt #<<= _summary.number>> ends with the clock.@@<br>
+		@@.notmc-speech; Dawn beat you to the answer. Hunt #<<= _summary.number>> closes with the sun up.@@<br>
 	<<elseif _summary.failureReason eq _FR.FLED>>
-		@@.notmc-speech; You walk away from the haunt. Hunt #<<= _summary.number>> ends with the door at your back.@@<br>
+		@@.notmc-speech; You walked. Hunt #<<= _summary.number>> closes unfinished.@@<br>
 	<<else>>
-		@@.notmc-speech; The haunt swallows you. Hunt #<<= _summary.number>> ends in failure.@@<br>
+		@@.notmc-speech; The house won. Hunt #<<= _summary.number>> goes to the house.@@<br>
 	<</if>>
 	<br>
-	<span class="mc-action">+<<= _summary.payout>> mL of ectoplasm</span><br>
-	<span class="mc-thoughts">Ectoplasm: <<= setup.HuntController.ectoplasm()>> mL</span><br>
+	<<if _summary.isContractHunt>>
+		<<if _summary.cashPayout gt 0>>
+			<span class="mc-action">+$<<= _summary.cashPayout>></span><br>
+		<<else>>
+			<span class="mc-thoughts">No payout. The key's spent.</span><br>
+		<</if>>
+	<<else>>
+		<<if _summary.cashPayout gt 0>>
+			<span class="mc-action">+$<<= _summary.cashPayout>></span><br>
+		<</if>>
+		<<if _summary.ectoplasmPayout gt 0>>
+			<span class="mc-action">+<<= _summary.ectoplasmPayout>> mL of ectoplasm</span><br>
+		<</if>>
+	<</if>>
+	<span class="mc-thoughts">Money: $<<= setup.Mc.money()>> &middot; Ectoplasm: <<= setup.HuntController.ectoplasm()>> mL</span><br>
 	<span class="mc-action">+<<= _summary.xp>> exp</span><br>
 	<br>
 	<<if _summary.success>>
@@ -212,20 +225,34 @@
 :: HuntOutside [nobr] {"position":"3100,300","size":"100,100"}
 /* The yard outside the haunt. Reached from HuntRun's hallway via the
    Outside nav link; only the hallway exposes that link. The run is
-   still active here -- the player can pick the ghost (HuntIdentify),
-   forfeit the run on the spot, or step back into the hallway and keep
-   exploring. The hunt event chain is paused while the player is on
-   this passage (HuntController.isHuntActive() answers off HuntRun
-   only), matching the in-house ticks pausing when the player leaves
-   the house. */
+   still active here -- the player can pick the ghost (HuntIdentify
+   for a rogue hunt, or carry the findings back to Khadija for a
+   contract hunt), forfeit the run on the spot, or step back into the
+   hallway and keep exploring. The hunt event chain is paused while
+   the player is on this passage (HuntController.isHuntActive()
+   answers off HuntRun only), matching the in-house ticks pausing
+   when the player leaves the house.
+
+   The identify path forks on whether the run is a contract hunt.
+   Khadija's deal -- "I sell keys, not jobs. You come back and tell me
+   what was in there." -- means contract hunts settle at the witch's
+   desk, not at the front yard. Rogue hunts (no key in hand for this
+   house) still resolve on the spot through HuntIdentify. */
 <<if not setup.HuntController.isActive()>>
 	@@.mc-thoughts; No active hunt.@@<br>
 	@@.backbtn; [[Back|CityMap]]@@
 <<else>>
+	<<set _heldId to setup.WitchContract.heldHouseId()>>
+	<<set _staticId to setup.HuntController.staticHouseId()>>
+	<<set _isContractHunt to _staticId and _heldId eq _staticId>>
 	@@.location; Outside the haunt@@<br>
-	@@.mc-thoughts; The front door is at your back. You can size up what you've found, walk away, or step back inside.@@<br>
+	@@.mc-thoughts; The yard is cold. The house knows you're still here. Name what's in there, walk, or go back in.@@<br>
 	<br>
-	@@.movebtn; [[Identify the ghost|HuntIdentify]]@@<br>
+	<<if _isContractHunt>>
+		@@.movebtn; [[Take your findings to Khadija|WitchInside]]@@<br>
+	<<else>>
+		@@.movebtn; [[Identify the ghost|HuntIdentify]]@@<br>
+	<</if>>
 	@@.movebtn; [[Flee the hunt|HuntSummary][setup.HuntController.markFailure(setup.HuntController.FailureReason.FLED)]]@@<br>
 	@@.movebtn; [[Go back inside|HuntRun]]@@
 <</if>>
@@ -241,7 +268,7 @@
 	@@.backbtn; [[Back|CityMap]]@@
 <<else>>
 	@@.location; Name the ghost@@<br>
-	@@.mc-speech; I think it was:@@<br>
+	@@.mc-speech; Calling it. It was --@@<br>
 	<<ghostTypeDropdown>><br>
 	@@.movebtn; [[Choose|HuntIdentifyResolve]]@@<br>
 	<br>
@@ -265,18 +292,18 @@
 	@@.mc-thoughts; No active hunt.@@<br>
 	@@.backbtn; [[Back|CityMap]]@@
 <<else>>
-	@@.mc-thoughts; You prepare, then confidently re-enter, ready to subdue the ghost and cleanse the house.@@<br>
+	@@.mc-thoughts; You set your jaw and walk back in. Subdue the ghost. Close the house. That's the order.@@<br>
 	<<timed 6s>>
 		<<if setup.HuntController.ghostName() eq setup.Ghosts.ghostTypeSelected()>>
 			<<run setup.HuntController.markSuccess()>>
-			<div class="hunt-reveal hunt-reveal-text">@@.notmc-speech; The ghost fades peacefully into the ether.@@</div>
+			<div class="hunt-reveal hunt-reveal-text">@@.notmc-speech; The shape thins out and goes. The house cools behind it.@@</div>
 			<div class="hunt-reveal hunt-reveal-buttons">
 				@@.movebtn; [[Continue|HuntSummary]]@@<br>
 				@@.movebtn; [[Go home|HuntSummary]]@@
 			</div>
 		<<else>>
 			<<set _trueGhost to setup.Ghosts.active()>>
-			<div class="hunt-reveal hunt-reveal-text">@@.mc-thoughts; Your heart sinks. It wasn't what you'd guessed -- it's a <<= _trueGhost.name>> bearing down on you, and every sign you talked yourself out of slams back into focus: <<= _trueGhost.evidenceLabels()>>. The ghost roughly grabs your helpless form before you can run.@@</div>
+			<div class="hunt-reveal hunt-reveal-text">@@.mc-thoughts; Wrong call. It's a <<= _trueGhost.name>>, and every sign you talked yourself out of -- <<= _trueGhost.evidenceLabels()>> -- snaps back into place at once. It's on you before you reach the door.@@</div>
 			<div class="hunt-reveal hunt-reveal-buttons">
 				@@.movebtn; [[Continue|HuntEnd]]@@
 			</div>
