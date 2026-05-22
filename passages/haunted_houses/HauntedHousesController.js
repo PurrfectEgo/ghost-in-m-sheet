@@ -73,9 +73,17 @@ setup.HauntedHouses = (function () {
 	var api = {
 		OWNED_VARS: OWNED_VARS,
 
-		endHunt: function () {
+		/* Shared hunt-over tail. Commits any temp corruption the run
+		   accumulated and flips $huntMode out of ACTIVE. Defaults to
+		   the ENDED catch-all; pass { possessed: true } from the
+		   Possessed passage to land in POSSESSED instead, which keys
+		   possession-specific cleanup (tarot mark-spent, monkey paw
+		   retire) via setup.Tick.applyPossessionItemCleanup. */
+		endHunt: function (opts) {
+			opts = opts || {};
 			this.commitTempCorruption();
-			setup.Ghosts.setHuntMode(setup.Ghosts.HuntMode.POSSESSED);
+			var HM = setup.HuntController.HuntMode;
+			setup.HuntController.setHuntMode(opts.possessed ? HM.POSSESSED : HM.ENDED);
 		},
 
 		/* Common end-of-hunt cleanup shared by the hunt lifecycle and
@@ -150,7 +158,7 @@ setup.HauntedHouses = (function () {
 			if (setup.Ghosts.elapsedTimeProwl() < setup.Ghosts.prowlTimeRemain()) return false;
 			var threshold = 6 + setup.HauntConditions.snapshot().prowlChanceBonus;
 			if (Math.floor(Math.random() * 101) > threshold) return false;
-			var g = setup.Ghosts.active();
+			var g = setup.HuntController.activeGhost();
 			return !!(g && g.canProwl({ sanity: setup.Mc.sanity(), lust: setup.Mc.lust() }));
 		},
 		/* Used by the huntTickEventChain widget: rolls the steal chance

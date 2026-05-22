@@ -24,7 +24,7 @@ test.describe('ToolController renderers', () => {
     await resetGame(page);
     // Make all ToolController renderers callable from the City flow
     // by pinning a known active hunt + ghost. The hunt flow drives
-    // setup.Ghosts.active() / setup.HuntController.isGhostHere() —
+    // setup.HuntController.activeGhost() / setup.HuntController.isGhostHere() —
     // both gate on an in-flight hunt, so we boot one with the
     // requested ghost pinned. Banshee carries both GLASS and GWB so
     // the side-effect test below can call the real findGwb without
@@ -40,7 +40,7 @@ test.describe('ToolController renderers', () => {
       SugarCube.setup.HuntController.setField('evidence',
         banshee.evidence.map(e => e.id));
       SugarCube.setup.Ghosts.cheatStartHunt('Banshee');
-      SugarCube.setup.Ghosts.setHuntMode(SugarCube.setup.Ghosts.HuntMode.ACTIVE);
+      SugarCube.setup.HuntController.setHuntMode(SugarCube.setup.HuntController.HuntMode.ACTIVE);
       SugarCube.setup.isGhostHere = () => true;
     });
   });
@@ -138,7 +138,7 @@ test.describe('ToolController renderers', () => {
     await page.evaluate(() => {
       Math.random = () => 0;
       SugarCube.setup.toolsRecord('emf').activated = 0;
-      const g = SugarCube.setup.Ghosts.active();
+      const g = SugarCube.setup.HuntController.activeGhost();
       g.canTurnOffLights = true;
       SugarCube.setup.Events.turnOffLightHere = () => null;
     });

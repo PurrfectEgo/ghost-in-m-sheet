@@ -5,12 +5,12 @@
        in save state as strings) with display metadata. Exposed as
        setup.Ghosts.Evidence. */
     var Evidence = Object.freeze({
-        EMF:         Object.freeze({ id: "emf",         label: "EMF5",             cssClass: "emf" }),
-        SPIRITBOX:   Object.freeze({ id: "spiritbox",   label: "SpiritBox",        cssClass: "spiritbox" }),
-        GWB:         Object.freeze({ id: "gwb",         label: "GhostWritingBook", cssClass: "gwb" }),
-        GLASS:       Object.freeze({ id: "glass",       label: "Ectoplasm",        cssClass: "glass" }),
-        TEMPERATURE: Object.freeze({ id: "temperature", label: "HighTemperature",  cssClass: "temperature" }),
-        UVL:         Object.freeze({ id: "uvl",         label: "UVLight",          cssClass: "uvl" })
+        EMF: Object.freeze({ id: "emf", label: "EMF5", cssClass: "emf" }),
+        SPIRITBOX: Object.freeze({ id: "spiritbox", label: "SpiritBox", cssClass: "spiritbox" }),
+        GWB: Object.freeze({ id: "gwb", label: "GhostWritingBook", cssClass: "gwb" }),
+        GLASS: Object.freeze({ id: "glass", label: "Ectoplasm", cssClass: "glass" }),
+        TEMPERATURE: Object.freeze({ id: "temperature", label: "HighTemperature", cssClass: "temperature" }),
+        UVL: Object.freeze({ id: "uvl", label: "UVLight", cssClass: "uvl" })
     });
     var E = Evidence;
 
@@ -30,7 +30,7 @@
             evidence: [E.EMF, E.GWB, E.TEMPERATURE],
             hint: "The lower your sanity, the less likely the Shade is to show interest in you.",
             description: "Shade -- one of the oldest types of ghosts. The main feature of the Shade is that the lower your sanity, the less likely the Shade is to show interest in you.",
-            prowlCondition:     function (mc) { return mc.sanity <= 55; },
+            prowlCondition: function (mc) { return mc.sanity <= 55; },
             prowlConditionText: "Can start a prowl if you have <= 55 sanity",
             invertedSanityStages: true
         },
@@ -39,13 +39,11 @@
             evidence: [E.EMF, E.SPIRITBOX, E.GWB],
             hint: "If it doesn't achieve its goal, it will relentlessly follow its victim.",
             description: "Spirit is a rather shy ghost. Unlike others, if it doesn't achieve its goal, it will relentlessly follow its victim. However, once it gets what it wants, it will vanish and cease to disturb, leaving its target in peace.",
-            prowlCondition:     function (mc) { return mc.lust >= 30; },
+            prowlCondition: function (mc) { return mc.lust >= 30; },
             prowlConditionText: "Can start a prowl if you have >= 30 lust",
-            walkHomePassage:   "GhostSpecialEventSpirit",
+            walkHomePassage: "GhostSpecialEventSpirit",
             /* Reset the event-stage tracker when a hunt ends without a
-               catch (HuntOverTime / HuntOverExhaustion / HuntOverManual
-               emit HUNT_END_GRACEFUL; HuntOverSanity intentionally does
-               not). */
+               catch, i.e. HUNT_END_GRACEFUL */
             huntHooks: {
                 HUNT_END_GRACEFUL: function () {
                     setup.SpecialEvent.clearSpiritEventStage();
@@ -57,7 +55,7 @@
             evidence: [E.SPIRITBOX, E.GWB, E.UVL],
             hint: "",
             description: "",
-            prowlCondition:     function (mc) { return mc.sanity <= 70; },
+            prowlCondition: function (mc) { return mc.sanity <= 70; },
             prowlConditionText: "Can start a prowl if you have <= 70 sanity"
         },
         {
@@ -65,18 +63,18 @@
             evidence: [E.GLASS, E.UVL, E.SPIRITBOX],
             hint: "This type of ghost cannot turn off the lights.",
             description: "This type of ghost cannot turn off the lights.",
-            prowlCondition:     function (mc) { return mc.sanity <= 70; },
+            prowlCondition: function (mc) { return mc.sanity <= 70; },
             prowlConditionText: "Can start a prowl if you have <= 70 sanity",
-            canTurnOffLights:  false
+            canTurnOffLights: false
         },
         {
             name: "Goryo", image: "goryo.webp",
             evidence: [E.GLASS, E.UVL, E.EMF],
             hint: "Goryo is known for its attachment to a single room and cannot change it like other ghosts do.",
             description: "Goryo is known for its attachment to a single room and cannot change it like other ghosts do. If you notice that the ghost's activity is focused exclusively in one area, you are likely dealing with a Goryo.",
-            prowlCondition:     function (mc) { return mc.lust >= 30; },
+            prowlCondition: function (mc) { return mc.lust >= 30; },
             prowlConditionText: "Can start a prowl if you have >= 30 lust",
-            staysInOneRoom:    true
+            staysInOneRoom: true
         },
         {
             name: "Demon", image: "demon.webp",
@@ -84,7 +82,7 @@
             hint: "Demon can start a hunt earlier than other ghosts",
             description: "Some sources report that the Demon is a unique ghost that can begin hunting you regardless of your current sanity or lust. Unlike other ghosts that only become active when your mental state declines or your desire increases, the Demon does not so strongly consider your present condition and can initiate its pursuit at nearly any time.",
             findableOnline: true,
-            prowlCondition:     function (mc) { return mc.sanity <= 90; },
+            prowlCondition: function (mc) { return mc.sanity <= 90; },
             prowlConditionText: "Can start a prowl if you have <= 90 sanity"
         },
         {
@@ -93,10 +91,10 @@
             hint: "When it starts its hunt, hiding won't help, as the Deogen relentlessly searches for you",
             description: "The Deogen is described as a particularly frightening ghost that will always find you, even if you try to hide. Once it starts its hunt, hiding won't help, as the Deogen relentlessly searches for its prey. However, since the Deogen is extremely slow, there's a chance to escape if you still have the strength to run.",
             findableOnline: true,
-            prowlCondition:     function (mc) { return mc.sanity <= 70; },
+            prowlCondition: function (mc) { return mc.sanity <= 70; },
             prowlConditionText: "Can start a prowl if you have <= 70 sanity",
-            hidingSucceeds:    false,   // Deogen always finds you
-            runningSucceeds:   true     // …but you can outrun it
+            hidingSucceeds: false,   // Deogen always finds you
+            runningSucceeds: true     // …but you can outrun it
         },
         {
             name: "Jinn", image: "jinn.webp",
@@ -104,18 +102,18 @@
             hint: "You can't escape from the Jinn by running, as it is incredibly fast.",
             description: "Some ghost hunters have reported that when encountering a Jinn, they tried to run but always failed because the ghost is too fast. However, when they found a hiding spot--even if it was right in front of the Jinn--he often passed by without noticing them. This indicates that hiding from a Jinn is much easier than trying to escape.",
             findableOnline: true,
-            prowlCondition:     function (mc) { return mc.sanity <= 70; },
+            prowlCondition: function (mc) { return mc.sanity <= 70; },
             prowlConditionText: "Can start a prowl if you have <= 70 sanity",
-            hidingSucceeds:    true,    // Jinn can be hidden from
-            runningSucceeds:   false    // …but never outrun
+            hidingSucceeds: true,    // Jinn can be hidden from
+            runningSucceeds: false    // …but never outrun
         },
         {
             name: "Moroi", image: "moroi.webp",
             evidence: [E.GWB, E.TEMPERATURE, E.SPIRITBOX],
             hint: "",
             description: "The Moroi can invade the minds of weak-willed victims when using the Spirit Box. Be cautious when communicating, as this ghost may possess you.",
-            prowlCondition:           function (mc) { return mc.sanity <= 70; },
-            prowlConditionText:       "Can start a prowl if you have <= 70 sanity",
+            prowlCondition: function (mc) { return mc.sanity <= 70; },
+            prowlConditionText: "Can start a prowl if you have <= 70 sanity",
             spiritboxPossessionChance: 30
         },
         {
@@ -123,9 +121,9 @@
             evidence: [E.GWB, E.EMF, E.UVL],
             hint: "Once you leave its presence, strange things begin to happen: those around you start seeing you in unusual clothing or even completely naked.",
             description: "Myling is a ghost that doesn't reveal itself directly upon encounter. However, once you leave its presence, strange things begin to happen: those around you start seeing you in unusual clothing or even completely naked.",
-            prowlCondition:     function (mc) { return mc.lust >= 30; },
+            prowlCondition: function (mc) { return mc.lust >= 30; },
             prowlConditionText: "Can start a prowl if you have >= 30 lust",
-            goHomePassage:        "GhostSpecialEventMyling",
+            goHomePassage: "GhostSpecialEventMyling",
             companionHuntPassage: "GhostSpecialEventMylingTwo"
         },
         {
@@ -134,7 +132,7 @@
             hint: "Encountering this ghost causes sanity to drop faster than with other ghosts.",
             description: "The mythical entity Oni brings not only fear but also rapid psychological devastation. Those who have encountered it report that @@.notmc-speech;Oni causes a sharp and intense decline in sanity@@, significantly accelerating this process compared to other ghosts. If you come face-to-face with Oni, be prepared for a swift and severe assault on your mental health.",
             findableOnline: true,
-            prowlCondition:     function (mc) { return mc.lust >= 30; },
+            prowlCondition: function (mc) { return mc.lust >= 30; },
             prowlConditionText: "Can start a prowl if you have >= 30 lust",
             sanityEventLossRange: [3, 8]
         },
@@ -143,7 +141,7 @@
             evidence: [E.UVL, E.TEMPERATURE, E.SPIRITBOX],
             hint: "Mimic always has an extra evidence -- ectoplasm",
             description: "Mimic is a ghost that can mimic nearly all the abilities of other ghosts, making it extremely unpredictable and difficult to identify. Additionally, The Mimic always has an extra evidence -- ectoplasm. Although ectoplasm is not considered evidence for identifying the ghost, its presence can aid in its identification.",
-            prowlCondition:     function (mc) { return mc.sanity <= 70; },
+            prowlCondition: function (mc) { return mc.sanity <= 70; },
             prowlConditionText: "Can start a prowl if you have <= 70 sanity",
             /* Seed the rotation clock when entering the haunted house so
                the next tick rolls a fresh disguise. */
@@ -158,7 +156,7 @@
             evidence: [E.EMF, E.TEMPERATURE, E.SPIRITBOX],
             hint: "",
             description: "",
-            prowlCondition:     function (mc) { return mc.lust >= 30; },
+            prowlCondition: function (mc) { return mc.lust >= 30; },
             prowlConditionText: "Can start a prowl if you have >= 30 lust",
             /* Stamp the per-prowl event flag. PROWL_EVENT fires from
                HuntOver*, NudityEvent, FreezeHunt, PrayHunt -- anywhere
@@ -174,16 +172,16 @@
             evidence: [E.GLASS, E.EMF, E.SPIRITBOX],
             hint: "If caught or if sanity runs out during the ghost hunt, you'll wake up somewhere other than home.",
             description: "This is quite a dangerous ghost. If it catches me or I lose sanity during the ghost hunt... Ending up in the forest with my hands tied is not something I want, so I need to be very careful. But even if things don't go as planned, it's better to conserve my energy to have a chance to escape.",
-            prowlCondition:     function (mc) { return mc.lust >= 30; },
+            prowlCondition: function (mc) { return mc.lust >= 30; },
             prowlConditionText: "Can start a prowl if you have >= 30 lust",
-            sleepPassage:      "GhostSpecialEventWraith"
+            sleepPassage: "GhostSpecialEventWraith"
         },
         {
             name: "Mare", image: "mare.webp",
             evidence: [E.GLASS, E.GWB, E.TEMPERATURE],
             hint: "Mare visits your house while you sleep",
             description: "Mare visits my house while I sleep. It's quite easy to get rid of; I just need to sprinkle holy water in the room where I sleep. It becomes more aggressive each day, so it's best not to delay. Although, someone online mentioned that it might stop haunting after a few days.",
-            prowlCondition:     function (mc) { return mc.lust >= 30; },
+            prowlCondition: function (mc) { return mc.lust >= 30; },
             prowlConditionText: "Can start a prowl if you have >= 30 lust",
             /* Advance the multi-day Mare event chain on house entry.
                Stage 0 -> 1 on first encounter; once the player has read
@@ -204,7 +202,7 @@
             evidence: [E.SPIRITBOX, E.GLASS, E.TEMPERATURE],
             hint: "Cthulion rarely reveals its true form, preferring to take on a human appearance. But when it needs to interact with its victims, it's not above using its tentacles.",
             description: "Cthulion is one of the oldest beings, with a history stretching far back before the dawn of humanity. Its true form is so alien to the human mind that most who encounter it can only describe it as \"unspeakable.\" However, Cthulion rarely reveals its true form, preferring to take on a human appearance. But when it needs to interact with its victims, it's not above using its tentacles.",
-            prowlCondition:     function (mc) { return mc.sanity <= 70; },
+            prowlCondition: function (mc) { return mc.sanity <= 70; },
             prowlConditionText: "Can start a prowl if you have <= 70 sanity",
             canTentacles: true,
             cursedActivityVideos: [
@@ -221,7 +219,7 @@
             evidence: [E.GLASS, E.GWB, E.UVL],
             hint: "The Banshee has a unique ability called the 'Kiss of the Banshee,' which reduces sanity by 10 points.",
             description: "The Banshee has a unique ability called the \"Kiss of the Banshee,\" which reduces sanity by 10 points.",
-            prowlCondition:     function (mc) { return mc.lust >= 30; },
+            prowlCondition: function (mc) { return mc.lust >= 30; },
             prowlConditionText: "Can start a prowl if you have >= 30 lust",
             canKiss: true,
             cursedActivityVideos: [
@@ -237,11 +235,11 @@
             evidence: [E.EMF, E.SPIRITBOX, E.UVL],
             hint: "Raiju is a mysterious entity that occasionally exerts influence over electrical devices, causing them to display incorrect readings. This spectral presence can manipulate the behavior of electronics, leading to unpredictable and sometimes inexplicable malfunctions.",
             description: "Raiju is a mysterious entity that occasionally exerts influence over electrical devices, causing them to display incorrect readings. This spectral presence can manipulate the behavior of electronics, leading to unpredictable and sometimes inexplicable malfunctions.",
-            prowlCondition:           function (mc) { return mc.sanity <= 70; },
-            prowlConditionText:       "Can start a prowl if you have <= 70 sanity",
-            emfGlitchChance:         3,
+            prowlCondition: function (mc) { return mc.sanity <= 70; },
+            prowlConditionText: "Can start a prowl if you have <= 70 sanity",
+            emfGlitchChance: 3,
             temperatureGlitchChance: 8,
-            spiritboxStaticChance:   20
+            spiritboxStaticChance: 20
         }
     ];
 
@@ -251,13 +249,13 @@
        $ghostInfoCollected map is exposed as the `isInfoCollected`
        accessor so callers never touch the raw map directly. */
     function Ghost(cfg) {
-        this.name              = cfg.name;
-        this.image             = cfg.image;
-        this.evidence          = cfg.evidence.slice();
-        this.hint              = cfg.hint;
-        this.description       = cfg.description;
-        this.findableOnline    = !!cfg.findableOnline;
-        this.prowlCondition     = cfg.prowlCondition;
+        this.name = cfg.name;
+        this.image = cfg.image;
+        this.evidence = cfg.evidence.slice();
+        this.hint = cfg.hint;
+        this.description = cfg.description;
+        this.findableOnline = !!cfg.findableOnline;
+        this.prowlCondition = cfg.prowlCondition;
         this.prowlConditionText = cfg.prowlConditionText || "";
 
         /* Per-ghost behaviour fields. Consumers check these instead of
@@ -265,29 +263,29 @@
            the huntTickEventChain widget, ChangeGhostRoom, EventMC,
            WalkHomeTogether, Sleep, companion Main files, and the HuntOver*
            flow for examples. */
-        this.canTurnOffLights     = cfg.canTurnOffLights !== false;     // default true
-        this.staysInOneRoom       = !!cfg.staysInOneRoom;
+        this.canTurnOffLights = cfg.canTurnOffLights !== false;     // default true
+        this.staysInOneRoom = !!cfg.staysInOneRoom;
         /* null = roll normally; true = always succeeds; false = never. */
-        this.hidingSucceeds       = (cfg.hidingSucceeds  !== undefined) ? cfg.hidingSucceeds  : null;
-        this.runningSucceeds      = (cfg.runningSucceeds !== undefined) ? cfg.runningSucceeds : null;
+        this.hidingSucceeds = (cfg.hidingSucceeds !== undefined) ? cfg.hidingSucceeds : null;
+        this.runningSucceeds = (cfg.runningSucceeds !== undefined) ? cfg.runningSucceeds : null;
         this.invertedSanityStages = !!cfg.invertedSanityStages;
-        this.walkHomePassage      = cfg.walkHomePassage      || null;   // Spirit: "GhostSpecialEventSpirit"
-        this.sleepPassage         = cfg.sleepPassage         || null;   // Wraith: "GhostSpecialEventWraith"
-        this.goHomePassage        = cfg.goHomePassage        || null;   // Myling: "GhostSpecialEventMyling"
+        this.walkHomePassage = cfg.walkHomePassage || null;   // Spirit: "GhostSpecialEventSpirit"
+        this.sleepPassage = cfg.sleepPassage || null;   // Wraith: "GhostSpecialEventWraith"
+        this.goHomePassage = cfg.goHomePassage || null;   // Myling: "GhostSpecialEventMyling"
         this.companionHuntPassage = cfg.companionHuntPassage || null;   // Myling: "GhostSpecialEventMylingTwo"
         this.sanityEventLossRange = cfg.sanityEventLossRange || [1, 5]; // Oni:    [3, 8]
 
         /* Sensor-glitch chance denominators (1/N per tool reading). */
-        this.emfGlitchChance         = cfg.emfGlitchChance         || 0; // Raiju: 3
+        this.emfGlitchChance = cfg.emfGlitchChance || 0; // Raiju: 3
         this.temperatureGlitchChance = cfg.temperatureGlitchChance || 0; // Raiju: 8
 
         /* Spiritbox special-response percentages (0-100, rolled once). */
         this.spiritboxPossessionChance = cfg.spiritboxPossessionChance || 0; // Moroi: 30
-        this.spiritboxStaticChance     = cfg.spiritboxStaticChance     || 0; // Raiju: 20
+        this.spiritboxStaticChance = cfg.spiritboxStaticChance || 0; // Raiju: 20
 
         /* Ability flags — check these instead of comparing names. */
         this.canTentacles = !!cfg.canTentacles;  // Cthulion
-        this.canKiss      = !!cfg.canKiss;       // Banshee
+        this.canKiss = !!cfg.canKiss;       // Banshee
 
         /* Extra video clips this ghost contributes to the cursed-activity
            video pool (widgetText). */
@@ -320,7 +318,7 @@
         get: function () { return !!ghostInfoMap()[this.name]; },
         set: function (v) {
             if (v) { ghostInfoMap()[this.name] = 1; }
-            else   { delete ghostInfoMap()[this.name]; }
+            else { delete ghostInfoMap()[this.name]; }
         }
     });
 
@@ -385,23 +383,23 @@
        Raiju overrides via cfg.emfGlitchChance / cfg.temperatureGlitchChance. */
     Ghost.prototype.rollEmfGlitch = function () {
         return this.emfGlitchChance > 0 &&
-               Math.floor(Math.random() * this.emfGlitchChance) === 0;
+            Math.floor(Math.random() * this.emfGlitchChance) === 0;
     };
     Ghost.prototype.rollTemperatureGlitch = function () {
         return this.temperatureGlitchChance > 0 &&
-               Math.floor(Math.random() * this.temperatureGlitchChance) === 0;
+            Math.floor(Math.random() * this.temperatureGlitchChance) === 0;
     };
 
     var GHOSTS = GHOST_CONFIG.map(function (cfg) { return new Ghost(cfg); });
 
     /* Map the six Notebook checkbox state vars to evidence ids. */
     var CHECK_VAR = {
-        emf:         "EMF5Check",
-        spiritbox:   "SpiritboxCheck",
-        gwb:         "GWBCheck",
-        glass:       "EctoglassCheck",
+        emf: "EMF5Check",
+        spiritbox: "SpiritboxCheck",
+        gwb: "GWBCheck",
+        glass: "EctoglassCheck",
         temperature: "TemperatureCheck",
-        uvl:         "UVLCheck"
+        uvl: "UVLCheck"
     };
 
     /* Turn a state-shaped evidence id array (["emf","gwb",…]) back into the
@@ -417,16 +415,6 @@
         return out;
     }
 
-    /* Lifecycle stages of the current hunt. Stored as the top-level
-       $huntMode integer (default 0 = NONE) and accessed through the
-       huntMode()/setHuntMode() helpers below. Prefer the predicate
-       helpers (isHunting, isPossessed, …) to comparing raw ints. */
-    var HuntMode = Object.freeze({
-        NONE:      0,   // no hunt active
-        ACTIVE:    2,   // player is inside the house, hunt in progress
-        POSSESSED: 3    // hunt ended (manual exit, sanity-over, pills)
-    });
-
     /* Memoisation for active(): during a render it's called from every
        evidence tool, hoverHtml, hunt-tick chain, etc. The rebuild (catalogue
        lookup + field copy + evidence rehydrate) is cheap but happens dozens
@@ -441,7 +429,6 @@
     /* Variables owned by this controller. Other controllers should
        query/mutate these only through the API methods below. */
     var OWNED_VARS = Object.freeze([
-        'huntMode',
         'prowlActivated', 'prowlActivationTime',
         'elapsedTimeProwl', 'prowlTimeRemain',
         'EMF5Check', 'SpiritboxCheck', 'GWBCheck', 'EctoglassCheck',
@@ -465,26 +452,17 @@
     var api = {
         OWNED_VARS: OWNED_VARS,
         Evidence: Evidence,
-        HuntMode: HuntMode,
 
         list: function () {
             return GHOSTS;
         },
 
-        /* The ghost currently being hunted. Returns a Ghost instance
-           keyed off $run.ghostName via setup.HuntController, with the
-           per-run evidence override (Fog of War etc.) applied. null
-           when no hunt is active. Cached across calls; see activeCache. */
-        active: function () {
-            return setup.HuntController.activeGhost();
-        },
-
         /* Internal: hand back the catalogue Ghost named `name`. Used by
-           HuntController for hunts. When the active hunt
-           carries an `evidence` override (e.g. Fog of War splices one
-           id at run start), wrap the catalogue entry so the rehydrated
-           evidence list reflects the override without mutating the
-           shared catalogue object. */
+           setup.HuntController.activeGhost() to resolve the ghost for
+           the active hunt. When the active hunt carries an `evidence`
+           override (e.g. Fog of War splices one id at run start), wrap
+           the catalogue entry so the rehydrated evidence list reflects
+           the override without mutating the shared catalogue object. */
         _activeFromCatalogue: function (name) {
             if (!name) return null;
             var override = (setup.HuntController && setup.HuntController.runEvidence)
@@ -522,14 +500,6 @@
             return null;
         },
 
-        /* Hunt lifecycle. activateHunt() flips $huntMode to ACTIVE and
-           clears stale per-hunt ability flags. Called from
-           setup.HuntController.startHunt once $run is stamped. */
-        activateHunt: function () {
-            State.variables.huntMode = HuntMode.ACTIVE;
-            setup.Ghosts.clearHuntFlags();
-        },
-
         /* Test / cheat shortcut. Stamps a minimal $run with the named
            ghost as both real identity and current disguise, copies in
            the catalogue evidence, and flips $huntMode to ACTIVE.
@@ -548,9 +518,9 @@
             if (!ghost) return false;
             setup.HuntController.cheatStampMinimalRun({
                 ghostName: name,
-                evidence:  ghost.evidence.map(function (e) { return e.id; })
+                evidence: ghost.evidence.map(function (e) { return e.id; })
             });
-            setup.Ghosts.activateHunt();
+            setup.HuntController.activateHunt();
             return true;
         },
 
@@ -566,17 +536,6 @@
             delete V.bansheeAbility;
             delete V.cthulionAbility;
         },
-
-        /* Hunt-mode query/mutation helpers. Prefer these to raw
-           $huntMode comparisons — they keep the magic ints out of
-           passages and give each stage a readable predicate. */
-        huntMode:    function ()     { return State.variables.huntMode || HuntMode.NONE; },
-        setHuntMode: function (mode) { State.variables.huntMode = mode; },
-        isHunting:   function ()     { return this.huntMode() === HuntMode.ACTIVE; },
-        isPossessed: function ()     { return this.huntMode() === HuntMode.POSSESSED; },
-        /* True for any stage past NONE — "a hunt is in progress or in
-           its post-mortem (possessed) phase". */
-        isAnyMode:   function ()     { return this.huntMode() !== HuntMode.NONE; },
 
         /* True when this hunt is actually a Mimic. $run.ghostName holds
            the true identity (never rotates); $run.disguiseName rotates
@@ -738,11 +697,11 @@
         setHighPriestess: function (on) { State.variables.highpriestess = on ? 1 : 0; },
         consumeHighPriestess: function () { State.variables.highpriestess = 0; },
         twinsEventActive: function () { return State.variables.twinsEventActive === 1; },
-        enableBanshee:  function () { State.variables.bansheeAbility = 1; },
+        enableBanshee: function () { State.variables.bansheeAbility = 1; },
         enableCthulion: function () { State.variables.cthulionAbility = 1; },
-        clearBanshee:   function () { delete State.variables.bansheeAbility; },
-        clearCthulion:  function () { delete State.variables.cthulionAbility; },
-        bansheeActive:  function () { return State.variables.bansheeAbility === 1; },
+        clearBanshee: function () { delete State.variables.bansheeAbility; },
+        clearCthulion: function () { delete State.variables.cthulionAbility; },
+        bansheeActive: function () { return State.variables.bansheeAbility === 1; },
         cthulionActive: function () { return State.variables.cthulionAbility === 1; },
         /* Mimic rotation: every 30 in-game minutes the mimic disguises itself
            as a different ghost. Returns the new disguise name when the
@@ -762,7 +721,7 @@
         // twinsEvent is registered with setup.Cooldowns at the
         // bottom of this file; daily reset flows through
         // setup.Tick.resetCooldowns.
-        twinsEventReady:  function () {
+        twinsEventReady: function () {
             return State.variables.twinsEventActive === 1 && setup.Cooldowns.available('twinsEvent');
         },
         consumeTwinsEvent: function () {
@@ -791,9 +750,9 @@
            0/1/2/3. Used by HauntedHouses to pick a contract reward tier. */
         scheduledDeletionCount: function () {
             var s = State.variables;
-            if (s.deleteThirdEvidence === 1)  return 3;
+            if (s.deleteThirdEvidence === 1) return 3;
             if (s.deleteSecondEvidence === 1) return 2;
-            if (s.deleteOneEvidence === 1)    return 1;
+            if (s.deleteOneEvidence === 1) return 1;
             return 0;
         },
     };
@@ -806,7 +765,7 @@
         'ghostTypeSelected',
         'chosenEvidence',
         { name: 'elapsedTimeProwl', get: false },
-        { name: 'prowlTimeRemain',  get: false }
+        { name: 'prowlTimeRemain', get: false }
     ]);
     setup.Cooldowns.registerDaily('twinsEvent');
     setup.Ghosts = api;

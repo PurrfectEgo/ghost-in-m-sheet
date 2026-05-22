@@ -35,8 +35,12 @@ setup.Tick = (function () {
 	}
 
 	// --- Possession / tarot cleanup ------------------------------
-	function applyPossessionTarotCleanup() {
-		if (setup.Ghosts.isPossessed()) {
+	/* mark the tarot deck spent and retire the monkey paw, since
+	the MC drops her cursed items when the ghost takes her body.
+	Graceful hunt-end paths leave the deck/paw in whatever state
+	resetCursedItemState() restored them to.*/
+	function applyPossessionItemCleanup() {
+		if (setup.HuntController.isPossessed()) {
 			setup.HauntedHouses.markTarotSpent();
 			setup.MonkeyPaw.retire();
 		}
@@ -127,7 +131,7 @@ setup.Tick = (function () {
 	   passage. Returns a passage name for the caller to Engine.play(),
 	   or null. */
 	function onPassageReady() {
-		if (setup.Ghosts.isHunting()
+		if (setup.HuntController.isHunting()
 			&& companionAttackActiveHit()
 			&& resolveCompanionAttack() === "hit") {
 			setup.Companion.pickRandomCompanionRoomFromContext();
@@ -145,7 +149,7 @@ setup.Tick = (function () {
 
 		setup.Migrations.ensureZeroDefaults();
 		setup.Migrations.seedTornStyles();
-		applyPossessionTarotCleanup();
+		applyPossessionItemCleanup();
 		setup.Migrations.ensureMcFit();
 		setup.Intro.ensureSensualBodyParts();
 		setup.Intro.clampSensualBodyParts(setup.Intro.currentSensualBodyPart());
@@ -166,7 +170,7 @@ setup.Tick = (function () {
 	function onPassageDone() {
 		setup.Wardrobe.refreshAggregateStates();
 
-		if (setup.Ghosts.isMimicHunt() && setup.Ghosts.isHunting()) {
+		if (setup.Ghosts.isMimicHunt() && setup.HuntController.isHunting()) {
 			setup.Posession.rollMimicType(
 				setup.Ghosts.names({ exclude: ["Mimic"] })
 			);
@@ -174,7 +178,7 @@ setup.Tick = (function () {
 
 		setup.HuntController.shuffleGhostRoom();
 
-		if (setup.Time.isMorningPlus() && setup.Ghosts.isHunting()) {
+		if (setup.Time.isMorningPlus() && setup.HuntController.isHunting()) {
 			return { goto: "HuntOverTime" };
 		}
 
@@ -214,7 +218,7 @@ setup.Tick = (function () {
 		tickRescueQuestExpiry: tickRescueQuestExpiry,
 		tickProwlTimer: tickProwlTimer,
 		applyChokerLustFloor: applyChokerLustFloor,
-		applyPossessionTarotCleanup: applyPossessionTarotCleanup,
+		applyPossessionItemCleanup: applyPossessionItemCleanup,
 		activeCompanionShouldLeaveAfterEvent: activeCompanionShouldLeaveAfterEvent,
 		companionAttackActiveHit: companionAttackActiveHit,
 		resolveCompanionAttack: resolveCompanionAttack,

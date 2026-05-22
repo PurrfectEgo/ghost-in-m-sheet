@@ -68,7 +68,7 @@ test.describe('HuntController', () => {
     const huntGhostName = await callSetup(page, 'setup.HuntController.ghostName()');
     expect(huntGhostName).toBeTruthy();
     expect(await callSetup(page, 'setup.HuntController.activeGhost().name')).toBe(huntGhostName);
-    expect(await callSetup(page, 'setup.Ghosts.active().name')).toBe(huntGhostName);
+    expect(await callSetup(page, 'setup.HuntController.activeGhost().name')).toBe(huntGhostName);
   });
 
   test('isHuntActive() requires the player to be on HuntRun', async () => {
@@ -87,38 +87,40 @@ test.describe('HuntController', () => {
     expect(await callSetup(page, 'setup.HuntController.isHuntActive()')).toBe(false);
   });
 
-  test('huntOverPassage() stamps a failure reason and returns HuntSummary', async () => {
+  test('huntOverPassage() stamps a failure reason and routes to the matching HuntOver* passage', async () => {
+    /* The helper now settles the run itself (endHunt) before
+       returning a goto target, so each branch needs a fresh hunt. */
     expect(await callSetup(page, 'setup.HuntController.huntOverPassage("sanity")')).toBeNull();
 
     await goToPassage(page, 'GhostStreet');
     await clickHuntCard(page);
-
     expect(await callSetup(page, 'setup.HuntController.huntOverPassage("sanity")'))
-      .toBe('HuntSummary');
-    expect(await callSetup(page, 'setup.HuntController.field("outcome")')).toBe('failure');
-    expect(await callSetup(page, 'setup.HuntController.field("failureReason")')).toBe('sanity');
+      .toBe('HuntOverSanity');
+    expect(await callSetup(page, 'setup.HuntController.isActive()')).toBe(false);
 
+    await goToPassage(page, 'GhostStreet');
+    await clickHuntCard(page);
     expect(await callSetup(page, 'setup.HuntController.huntOverPassage("exhaustion")'))
-      .toBe('HuntSummary');
-    expect(await callSetup(page, 'setup.HuntController.field("failureReason")')).toBe('exhaustion');
+      .toBe('HuntOverExhaustion');
 
+    await goToPassage(page, 'GhostStreet');
+    await clickHuntCard(page);
     expect(await callSetup(page, 'setup.HuntController.huntOverPassage("time")'))
-      .toBe('HuntSummary');
-    expect(await callSetup(page, 'setup.HuntController.field("failureReason")')).toBe('time');
+      .toBe('HuntOverTime');
   });
 
-  test('huntCaughtPassage() stamps a caught failure and routes to HuntSummary', async () => {
-    /* HuntEnd's <<huntEndExit>> widget delegates the post-scene exit
-       target to this helper. Hunt mode stamps a "caught" failure and
-       routes to HuntSummary. Outside a hunt, falls back to Sleep. */
+  test('huntCaughtPassage() stamps a caught failure and routes to CityMap', async () => {
+    /* HuntOverProwl's <<huntBlackoutExit>> widget delegates the post-scene exit
+       target to this helper. Hunt mode stamps a "caught" failure,
+       settles the run via endHunt, and routes to the failure exit
+       passage (CityMap by default). Outside a hunt, falls back to Sleep. */
     expect(await callSetup(page, 'setup.HuntController.huntCaughtPassage()')).toBe('Sleep');
 
     await goToPassage(page, 'GhostStreet');
     await clickHuntCard(page);
 
-    expect(await callSetup(page, 'setup.HuntController.huntCaughtPassage()')).toBe('HuntSummary');
-    expect(await callSetup(page, 'setup.HuntController.field("outcome")')).toBe('failure');
-    expect(await callSetup(page, 'setup.HuntController.field("failureReason")')).toBe('caught');
+    expect(await callSetup(page, 'setup.HuntController.huntCaughtPassage()')).toBe('CityMap');
+    expect(await callSetup(page, 'setup.HuntController.isActive()')).toBe(false);
   });
 
   test('shouldStartProwl() fires when the predicate is met', async () => {
@@ -171,7 +173,7 @@ test.describe('HuntController', () => {
   });
 
   test('onCaughtCleanup() clears stolen-garment flags without throwing', async () => {
-    /* HuntEnd's bottom-of-passage cleanup goes through this helper.
+    /* HuntOverProwl's bottom-of-passage cleanup goes through this helper.
        No $hunt to mutate; cleanup still runs and clears the
        stolen-garment flags so the player walks out clean. */
     await page.evaluate(() => SugarCube.setup.HuntController.startHunt({ seed: 1 }));

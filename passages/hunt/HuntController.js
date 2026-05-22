@@ -29,12 +29,31 @@ setup.HuntController = (function () {
 	var OWNED_VARS = Object.freeze([
 		'run', 'ectoplasm', 'runsStarted',
 		'nextHuntSeed', 'pendingHuntHouseId',
-		// Absolute total-minute clock value when the next ghost-room
-		// drift roll should fire. Written by startHunt (seed) and
-		// shuffleGhostRoom (re-roll after each pass), read by
-		// shuffleGhostRoom only.
-		'nextDriftAtMinute'
+		'nextDriftAtMinute',
+		'huntMode'
 	]);
+
+	/* Lifecycle stages of the current hunt. Stored as the top-level
+	   $huntMode integer (default 0 = NONE) and accessed through the
+	   huntMode()/setHuntMode() helpers below. Prefer the predicate
+	   helpers (isHunting, isPossessed, isEnded, …) to comparing
+	   raw ints.
+
+	   ENDED vs POSSESSED: ENDED is the catch-all "the hunt is over"
+	   state — graceful exits (manual leave, exhaustion, sanity-out,
+	   contract close, walk home). POSSESSED is the narrower "the
+	   ghost actually caught and possessed the MC" state, reached only
+	   through the Possessed passage. Post-hunt cleanup that only
+	   applies to genuine possession (e.g. retiring the monkey paw
+	   and marking the tarot deck spent — see
+	   setup.Tick.applyPossessionItemCleanup) keys off POSSESSED;
+	   anything that just needs "the hunt is over" keys off isEnded(). */
+	var HuntMode = Object.freeze({
+		NONE:      0,   // no hunt active
+		ACTIVE:    2,   // player is inside the house, hunt in progress
+		POSSESSED: 3,   // ghost caught + possessed the MC (Possessed passage)
+		ENDED:     4    // hunt ended without possession (graceful exits)
+	});
 
 	var sv = setup.sv;
 
@@ -131,15 +150,13 @@ setup.HuntController = (function () {
 	   the rest of the fields. Also flips $huntMode back to NONE and
 	   tears down companion bookkeeping that startHunt stamped, so a
 	   Cancel from the HuntStart lobby (which calls this directly, not
-	   endHunt) doesn't leave Ghosts.isHunting() stuck on -- which
-	   would let the post-passage tick redirect the player into
-	   HuntOverTime once the clock crossed 06:00. */
+	   endHunt) doesn't leave isHunting() stuck on -- which would let
+	   the post-passage tick redirect the player into HuntOverTime once
+	   the clock crossed 06:00. */
 	function end() {
 		var prior = sv().run;
 		sv().run = null;
-		if (setup.Ghosts && typeof setup.Ghosts.setHuntMode === 'function') {
-			setup.Ghosts.setHuntMode(setup.Ghosts.HuntMode.NONE);
-		}
+		setHuntMode(HuntMode.NONE);
 		if (setup.Companion) {
 			if (typeof setup.Companion.runHuntFailHooks === 'function') setup.Companion.runHuntFailHooks();
 			if (typeof setup.Companion.resetActiveCompanionStats === 'function') setup.Companion.resetActiveCompanionStats();
@@ -156,6 +173,32 @@ setup.HuntController = (function () {
 
 	function active()    { return sv().run || null; }
 	function isActive()  { return !!sv().run; }
+
+	/* Hunt-mode query/mutation helpers. Prefer these to raw
+	   $huntMode comparisons — they keep the magic ints out of
+	   passages and give each stage a readable predicate. */
+	function huntMode()    { return sv().huntMode || HuntMode.NONE; }
+	function setHuntMode(mode) { sv().huntMode = mode; }
+	function isHunting()   { return huntMode() === HuntMode.ACTIVE; }
+	function isPossessed() { return huntMode() === HuntMode.POSSESSED; }
+	/* True once the hunt is over for any reason — graceful exit or
+	   genuine possession. Use when the caller only cares that the
+	   run has wrapped; key off isPossessed() for possession-specific
+	   cleanup. */
+	function isEnded()     { var m = huntMode(); return m === HuntMode.ENDED || m === HuntMode.POSSESSED; }
+	/* True for any stage past NONE — "a hunt is in progress or in
+	   its post-mortem (ended/possessed) phase". */
+	function isAnyMode()   { return huntMode() !== HuntMode.NONE; }
+
+	/* Flip $huntMode to ACTIVE and clear stale per-hunt ability flags
+	   (highpriestess / banshee / cthulion live on setup.Ghosts as
+	   per-hunt singletons). Called from startHunt once $run is stamped. */
+	function activateHunt() {
+		setHuntMode(HuntMode.ACTIVE);
+		if (setup.Ghosts && typeof setup.Ghosts.clearHuntFlags === 'function') {
+			setup.Ghosts.clearHuntFlags();
+		}
+	}
 
 	/* Wrap a function body in the "bail out when no run is active" guard.
 	   Replaces the `if (!isActive()) return <fallback>;` first-line pattern
@@ -656,10 +699,10 @@ setup.HuntController = (function () {
 		setField('evidence', evidenceIds);
 		setField('disguiseName', ghostName);
 		/* Flip $huntMode to ACTIVE so the per-hunt machinery
-		   (setup.Ghosts.isHunting() / active(), companion mini panel +
+		   (isHunting() / activeGhost(), companion mini panel +
 		   walk-home gate, Mimic rotation, Bag tabs, tick-side morning /
 		   possessed checks) lights up immediately. */
-		setup.Ghosts.activateHunt();
+		activateHunt();
 		/* Pin the in-game clock to midnight so the post-passage tick
 		   doesn't punt the player into HuntOverTime the moment they
 		   land on HuntStart/HuntRun. In production this matches what
@@ -859,7 +902,7 @@ setup.HuntController = (function () {
 	   through these instead of touching $run.outcome / $run.failureReason
 	   directly so the field names + Outcome enum stay in one place.
 	   markSuccess / markFailure cover the common "stamp the result on
-	   the run before navigating to HuntSummary" flow. */
+	   the run before the lifecycle helper calls endHunt" flow. */
 	function outcome() {
 		var run = sv().run;
 		return run ? (run.outcome || null) : null;
@@ -884,10 +927,12 @@ setup.HuntController = (function () {
 		if (reason) run.failureReason = reason;
 	}
 
-	/* Map a (success, failureReason) pair to the passage HuntSummary's
-	   Continue link should target. Successful runs and failures without
-	   a dedicated HuntOver* screen fall back to CityMap. Centralizing
-	   the lookup keeps HuntSummary free of FailureReason branches. */
+	/* Map a (success, failureReason) pair to the passage the hunt
+	   should land on after endHunt fires. Successful runs and failures
+	   without a dedicated HuntOver* screen fall back to CityMap. The
+	   per-helper exit routers (huntOverPassage / huntCaughtPassage /
+	   streetExitPassage) all funnel through this so the failure-reason
+	   → passage mapping lives in one place. */
 	function exitPassageForOutcome(success, reason) {
 		if (success) return "CityMap";
 		var FR = setup.HuntEnums.FailureReason;
@@ -963,9 +1008,9 @@ setup.HuntController = (function () {
 			xp: xpReward,
 			exitPassage: exitPassageForOutcome(!!success, run.failureReason || null)
 		};
-		/* Stash the outcome on persistent meta-state so HuntSummary
-		   can gate the "Start a new hunt" continuation link on it --
-		   $run is cleared by end() below, so the passage needs a
+		/* Stash the outcome on persistent meta-state so any post-hunt
+		   surface that cares about the last result can gate on it --
+		   $run is cleared by end() below, so anyone reading needs a
 		   side channel that survives a successful close. */
 		setup.HuntShop.markLastWasSuccess(success);
 		if (setup.HauntedHouses) {
@@ -987,8 +1032,13 @@ setup.HuntController = (function () {
 		   companion machinery (mini panel, attack roll, leave-after-event)
 		   sees a clean slate. runHuntFailHooks gives the active companion
 		   (if any) a chance to clean up their own state; resetHuntState
-		   then zeroes the shared plan / showComp / isCompChosen flags. */
-		setup.Ghosts.setHuntMode(setup.Ghosts.HuntMode.POSSESSED);
+		   then zeroes the shared plan / showComp / isCompChosen flags.
+
+		   This is the catch-all lifecycle ending (witch contract close,
+		   exhaustion/sanity exits, manual leave). Genuine possession
+		   transitions to POSSESSED separately from the Possessed
+		   passage; see passages/posession/possessed.tw. */
+		setHuntMode(HuntMode.ENDED);
 		if (setup.Companion) {
 			setup.Companion.runHuntFailHooks();
 			setup.Companion.resetHuntState();
@@ -1021,7 +1071,7 @@ setup.HuntController = (function () {
 		   to the in-game daily seed and showed the same address until
 		   the player slept. */
 		rollNextSeed();
-		setup.Hunt.emit(setup.Hunt.Event.END, {
+		setup.Hunt.emit(setup.Hunt.Event.HUNT_END_ASSAULTED, {
 			success: !!success,
 			isContractHunt: isContractHunt,
 			cashPayout: cashPayout,
@@ -1107,12 +1157,14 @@ setup.HuntController = (function () {
 
 	/* Passage to <<goto>> when the per-tick chain detects a
 	   hunt-over condition. `reason` is one of setup.HuntEnums.FailureReason.SANITY |
-	   EXHAUSTION | TIME. Stamps the run as a failure with the reason
-	   and returns "HuntSummary" so the chain widget can route there
+	   EXHAUSTION | TIME. Stamps the failure, runs endHunt() to settle
+	   the run (payout + state teardown), and returns the dedicated
+	   HuntOver* narrative passage so the chain widget can route there
 	   with one <<goto>>. */
 	var huntOverPassage = guarded(null, function (reason) {
 		markFailure(reason);
-		return "HuntSummary";
+		var summary = endHunt(false);
+		return summary ? summary.exitPassage : exitPassageForOutcome(false, reason);
 	});
 
 	/* The ghost's true identity for the active hunt. Hunts don't
@@ -1140,14 +1192,16 @@ setup.HuntController = (function () {
 		return roomId;
 	});
 
-	/* "Ghost catches the MC" exit target that HuntEnd's <<huntEndExit>>
-	   widget routes through. Stamps a CAUGHT failure on the run and
-	   routes to HuntSummary. */
+	/* "Ghost catches the MC" exit target that HuntOverProwl's <<huntBlackoutExit>>
+	   widget routes through. Stamps a CAUGHT failure on the run, runs
+	   endHunt() to settle payout + teardown, and returns the exit
+	   passage (CityMap by default). Outside a hunt, falls back to Sleep. */
 	function huntCaughtPassage() {
 		if (isActive()) {
 			setup.Hunt.emit(setup.Hunt.Event.CAUGHT, { ghostName: ghostName() });
 			markFailure(setup.HuntEnums.FailureReason.CAUGHT);
-			return "HuntSummary";
+			var summary = endHunt(false);
+			return summary ? summary.exitPassage : "CityMap";
 		}
 		return "Sleep";
 	}
@@ -1207,12 +1261,12 @@ setup.HuntController = (function () {
 		return Math.max(0.20, 0.45 - bonus * 0.005);
 	}
 
-	/* End-of-HuntEnd cleanup. Wraps the wardrobe / companion /
+	/* End-of-HuntOverProwl cleanup. Wraps the wardrobe / companion /
 	   tool-timer reset. Caller wraps this in
 	   `not setup.Ghosts.hasHighPriestess()` so the priestess reprieve
-	   still skips the cleanup entirely. The hunt lifecycle handles
-	   its own $run teardown when the player clicks the huntEndExit
-	   link through to HuntSummary. */
+	   still skips the cleanup entirely. $run teardown lives on
+	   huntCaughtPassage, which is what the huntBlackoutExit link
+	   eventually routes through. */
 	function onCaughtCleanup() {
 		setup.HauntedHouses.cleanupAfterHunt({ loseStolen: true });
 	}
@@ -1255,11 +1309,13 @@ setup.HuntController = (function () {
 	}
 
 	/* "Get me out of here" exit target -- the goto used by the
-	   Monkey Paw leave wish. Stamps an ABANDON failure on the run
-	   and returns HuntSummary so the leave wish forfeits the run cleanly. */
+	   Monkey Paw leave wish. Stamps an ABANDON failure on the run,
+	   runs endHunt() to settle payout + teardown, and returns the exit
+	   passage so the leave wish forfeits the run cleanly. */
 	var streetExitPassage = guarded(null, function () {
 		markFailure(setup.HuntEnums.FailureReason.ABANDON);
-		return "HuntSummary";
+		var summary = endHunt(false);
+		return summary ? summary.exitPassage : "CityMap";
 	});
 
 	/* "The MC has been possessed" target -- the goto used by the Tarot
@@ -1324,6 +1380,7 @@ setup.HuntController = (function () {
 
 	return {
 		OWNED_VARS: OWNED_VARS,
+		HuntMode: HuntMode,
 		/* Outcome / FailureReason / Objective / objectiveDescription
 		   are spliced onto this api by HuntEnums.js after this file
 		   evaluates -- see the splice block at the bottom of HuntEnums.js. */
@@ -1332,6 +1389,13 @@ setup.HuntController = (function () {
 		end: end,
 		active: active,
 		isActive: isActive,
+		huntMode: huntMode,
+		setHuntMode: setHuntMode,
+		isHunting: isHunting,
+		isPossessed: isPossessed,
+		isEnded: isEnded,
+		isAnyMode: isAnyMode,
+		activateHunt: activateHunt,
 		seed: seed,
 		number: number,
 		modifiers: modifiers,
