@@ -31,12 +31,12 @@ setup.Companion = (function () {
 	var KNOWN_PLANS = Object.freeze(['Plan1', 'Plan2', 'Plan3', 'Plan4']);
 	var TRANSITIONS = {
 		reset:        { chosenPlan: 0,       chosenPlanActivated: 0, randomGhostPassage: 0,
-		                isCompRoomChosen: 0, showComp: CS.HIDDEN,    isCompChosen: 0 },
-		dismiss:      { chosenPlan: 0,                                                       showComp: CS.HIDDEN, isCompChosen: 0 },
+		                isCompRoomChosen: false, showComp: CS.HIDDEN,    isCompChosen: false },
+		dismiss:      { chosenPlan: 0,                                                       showComp: CS.HIDDEN, isCompChosen: false },
 		resume:       { chosenPlanActivated: 0, randomGhostPassage: 0,
-		                isCompRoomChosen: 0,    showComp: CS.VISIBLE },
+		                isCompRoomChosen: false,    showComp: CS.VISIBLE },
 		resolve:      { chosenPlan: 'Plan1', chosenPlanActivated: 0, randomPassageOwaissa: 0,
-		                isCompRoomChosen: 0, showComp: CS.VISIBLE },
+		                isCompRoomChosen: false, showComp: CS.VISIBLE },
 		stayTogether: { chosenPlan: 'Plan1', chosenPlanActivated: 0, showComp: CS.VISIBLE },
 		startPlan:    { chosenPlanActivated: 1, showComp: CS.HIDDEN }
 	};
@@ -338,7 +338,7 @@ setup.Companion = (function () {
 		   street" rather than off on a Plan2-4 task. */
 		companionAtStreet: function () {
 			var s = State.variables;
-			return s.isCompChosen === 1 && KNOWN_PLANS.indexOf(s.chosenPlan) === -1;
+			return s.isCompChosen === true && KNOWN_PLANS.indexOf(s.chosenPlan) === -1;
 		},
 
 		shouldRenderMini: function () {
@@ -395,8 +395,8 @@ setup.Companion = (function () {
 			this.payForSoloContract(name);
 		},
 
-		isCompanionFlagActive: function () { return State.variables.isCompChosen === 1; },
-		markCompanionFlagActive: function () { State.variables.isCompChosen = 1; },
+		isCompanionFlagActive: function () { return State.variables.isCompChosen === true; },
+		markCompanionFlagActive: function () { State.variables.isCompChosen = true; },
 		/* Pick a video/image descriptor for the CompanionEvent
 		   passage. Each companion has a 4-tier sanity ladder
 		   (75+, 50–74, 25–49, 0–24); the per-companion tier table
@@ -441,12 +441,12 @@ setup.Companion = (function () {
 		isPossessed:   function (name) { var c = getByName(name); return c ? c.isPossessed() : false; },
 		isUnavailable: function (name) { var c = getByName(name); return c ? c.isUnavailable() : false; },
 		blakeUnlocked: function () { return setup.Mall.blakeIsCompanionCandidate(); },
-		aliceWorkDone: function () { return State.variables.aliceWorkDone === 1; },
+		aliceWorkDone: function () { return State.variables.aliceWorkDone === true; },
 		/* Low-level Alice-flag writers exposed for CompanionData's per-
 		   companion catalogue hooks; the controller stays the single
 		   writer of $meetAlice / $aliceWorkDone. */
-		markAliceMet: function () { State.variables.meetAlice = 1; },
-		clearAliceWorkDone: function () { State.variables.aliceWorkDone = 0; },
+		markAliceMet: function () { State.variables.meetAlice = true; },
+		clearAliceWorkDone: function () { State.variables.aliceWorkDone = false; },
 		hasActiveCompanion: function () { var c = this.activeState(); return !!(c && c.name); },
 		activeCompanionName: function () {
 			var c = this.activeState();
@@ -512,8 +512,8 @@ setup.Companion = (function () {
 			this.pickRandomCompanionRoom();
 		},
 		pickRandomCompanionRoom: function () {
-			if (State.variables.isCompRoomChosen === 1) return;
-			State.variables.isCompRoomChosen = 1;
+			if (State.variables.isCompRoomChosen === true) return;
+			State.variables.isCompRoomChosen = true;
 			if (!setup.HuntController) return;
 			var run = setup.HuntController.active();
 			if (!run || !run.floorplan) return;

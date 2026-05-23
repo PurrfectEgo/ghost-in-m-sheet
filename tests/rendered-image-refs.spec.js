@@ -136,7 +136,7 @@ test.describe('rendered image/video refs resolve to files', () => {
         V.companion = { name: n };
         const row = V[n.toLowerCase()];
         if (row) { row.chosen = 1; row.sanity = 100; row.lust = 0; }
-        V.isCompChosen = 1;
+        V.isCompChosen = true;
         V.showComp = 1;
         V.hauntedHouse = 'owaissa';
       }, name);
@@ -222,7 +222,7 @@ test.describe('rendered image/video refs resolve to files', () => {
           const V = SugarCube.State.variables;
           V.companion = { name: 'Brook' };
           if (V.brook) Object.assign(V.brook, { chosen: 1, sanity: 100, lust: 0, eventSanityLoss: 10, lvl: 3, exp: 0, expForNextLvl: 60 });
-          V.isCompChosen = 1;
+          V.isCompChosen = true;
           V.showComp = 1;
           V.chosenPlan = 'Plan1';
           V.hauntedHouse = 'owaissa';
@@ -234,7 +234,7 @@ test.describe('rendered image/video refs resolve to files', () => {
           const V = SugarCube.State.variables;
           V.companion = { name: 'Alice' };
           if (V.alice) Object.assign(V.alice, { chosen: 1, sanity: 60, lust: 20, eventSanityLoss: 10, lvl: 3, exp: 0, expForNextLvl: 60 });
-          V.isCompChosen = 1;
+          V.isCompChosen = true;
           V.showComp = 1;
           V.chosenPlan = 'Plan1';
           V.hauntedHouse = 'owaissa';
@@ -246,7 +246,7 @@ test.describe('rendered image/video refs resolve to files', () => {
           const V = SugarCube.State.variables;
           V.companion = { name: 'Blake' };
           if (V.blake) Object.assign(V.blake, { chosen: 1, sanity: 30, lust: 60, eventSanityLoss: 10, lvl: 4, exp: 0, expForNextLvl: 100 });
-          V.isCompChosen = 1;
+          V.isCompChosen = true;
           V.showComp = 1;
           V.chosenPlan = 'Plan1';
           V.hauntedHouse = 'elm';

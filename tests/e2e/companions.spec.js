@@ -89,7 +89,7 @@ test.describe('Companions — passage rendering', () => {
         await setVar(page, 'alice.chanceToAttack', 25);
         await setVar(page, 'blake.chanceToAttack', 25);
         await setVar(page, 'brook.chanceToAttack', 25);
-        await setVar(page, 'isCompChosen', 1);
+        await setVar(page, 'isCompChosen', true);
         await setHuntMode(page, 2);
         await setVar(page, 'ghost', { name: 'Shade' });
         await goToPassage(page, passage);
@@ -130,7 +130,7 @@ test.describe('Companions — passage rendering', () => {
       await setVar(page, 'brook.chanceToAttack', 25);
       await setVar(page, 'alice.chanceToAttack', 25);
       await setVar(page, 'blake.chanceToAttack', 25);
-      await setVar(page, 'isCompChosen', 1);
+      await setVar(page, 'isCompChosen', true);
       await setHuntMode(page, 2);
       await setVar(page, 'ghost', { name: 'Shade' });
       await goToPassage(page, 'CompanionMain');
@@ -160,7 +160,7 @@ test.describe('Companions — hunt-side events', () => {
   });
 
   test('companionAtStreet excludes Plan1–Plan4 (those keep the companion inside)', async ({ game: page }) => {
-    await setVar(page, 'isCompChosen', 1);
+    await setVar(page, 'isCompChosen', true);
     for (const plan of ['Plan1', 'Plan2', 'Plan3', 'Plan4']) {
       await setVar(page, 'chosenPlan', plan);
       expect(await callSetup(page, 'setup.Companion.companionAtStreet()')).toBe(false);
@@ -225,7 +225,7 @@ test.describe('Companions — hunt-side events', () => {
 
   test('Blake onHuntFail drops the cursed item when chosen + holding one', async ({ game: page }) => {
     await setVar(page, 'companion', { name: 'Blake' });
-    await setVar(page, 'isCompChosen', 1);
+    await setVar(page, 'isCompChosen', true);
     await setVar(page, 'gotCursedItem', 1);
     await page.evaluate(() => SugarCube.setup.Companion.runHuntFailHooks());
     expect(await getVar(page, 'gotCursedItem')).toBe(0);
@@ -233,7 +233,7 @@ test.describe('Companions — hunt-side events', () => {
 
   test('runHuntFailHooks is a no-op when Blake is active but not chosen', async ({ game: page }) => {
     await setVar(page, 'companion', { name: 'Blake' });
-    await setVar(page, 'isCompChosen', 0);
+    await setVar(page, 'isCompChosen', false);
     await setVar(page, 'gotCursedItem', 1);
     await page.evaluate(() => SugarCube.setup.Companion.runHuntFailHooks());
     expect(await getVar(page, 'gotCursedItem')).toBe(1);
@@ -241,7 +241,7 @@ test.describe('Companions — hunt-side events', () => {
 
   test('runHuntFailHooks is a no-op when a non-Blake companion is active', async ({ game: page }) => {
     await setVar(page, 'companion', { name: 'Alice' });
-    await setVar(page, 'isCompChosen', 1);
+    await setVar(page, 'isCompChosen', true);
     await setVar(page, 'gotCursedItem', 1);
     await page.evaluate(() => SugarCube.setup.Companion.runHuntFailHooks());
     expect(await getVar(page, 'gotCursedItem')).toBe(1);
@@ -249,13 +249,13 @@ test.describe('Companions — hunt-side events', () => {
 
   test('resetHuntState zeroes plan/flags for clean post-hunt state', async ({ game: page }) => {
     await setVar(page, 'chosenPlan', 'Plan3');
-    await setVar(page, 'isCompChosen', 1);
+    await setVar(page, 'isCompChosen', true);
     await setVar(page, 'showComp', 1);
-    await setVar(page, 'isCompRoomChosen', 1);
+    await setVar(page, 'isCompRoomChosen', true);
     await page.evaluate(() => SugarCube.setup.Companion.resetHuntState());
     expect(await getVar(page, 'chosenPlan')).toBe(0);
-    expect(await getVar(page, 'isCompChosen')).toBe(0);
-    expect(await getVar(page, 'isCompRoomChosen')).toBe(0);
+    expect(await getVar(page, 'isCompChosen')).toBe(false);
+    expect(await getVar(page, 'isCompRoomChosen')).toBe(false);
     expect(await getVar(page, 'showComp')).toBe(0);
   });
 });
@@ -286,7 +286,7 @@ test.describe('Companions — home/intimate events', () => {
       await selectCompanion(page, 'Alice');
       await page.evaluate(() =>
         SugarCube.setup.HuntController.startHunt({ seed: 1, staticHouseId: 'owaissa' }));
-      await setVar(page, 'isCompRoomChosen', 0);
+      await setVar(page, 'isCompRoomChosen', false);
       await goToPassage(page, passage);
       await expectCleanPassage(page);
     });
@@ -296,9 +296,9 @@ test.describe('Companions — home/intimate events', () => {
     await selectCompanion(page, 'Alice');
     await page.evaluate(() =>
       SugarCube.setup.HuntController.startHunt({ seed: 1, staticHouseId: 'owaissa' }));
-    await setVar(page, 'isCompRoomChosen', 0);
+    await setVar(page, 'isCompRoomChosen', false);
     await callSetup(page, 'setup.Companion.pickRandomCompanionRoomFromContext()');
-    expect(await getVar(page, 'isCompRoomChosen')).toBe(1);
+    expect(await getVar(page, 'isCompRoomChosen')).toBe(true);
   });
 });
 
@@ -306,7 +306,7 @@ test.describe('Companions — hunt setup integration', () => {
   test('Active hunt with Alice chosen renders the mini panel', async ({ game: page }) => {
     await setupHunt(page, 'Shade');
     await selectCompanion(page, 'Alice');
-    await setVar(page, 'isCompChosen', 1);
+    await setVar(page, 'isCompChosen', true);
     await setVar(page, 'chosenPlan', 'Plan1');
     await goToPassage(page, 'HuntRun');
     await expectCleanPassage(page);
@@ -332,11 +332,11 @@ test.describe('Companions — hunt setup integration', () => {
     await selectCompanion(page, 'Alice');
     await page.evaluate(() =>
       SugarCube.setup.HuntController.startHunt({ seed: 1, staticHouseId: 'owaissa' }));
-    await setVar(page, 'isCompChosen', 1);
+    await setVar(page, 'isCompChosen', true);
     await setVar(page, 'chosenPlan', 'Plan1');
     await setVar(page, 'showComp', 1);
     await page.evaluate(() => SugarCube.setup.HuntController.endHunt(true));
-    expect(await getVar(page, 'isCompChosen')).toBe(0);
+    expect(await getVar(page, 'isCompChosen')).toBe(false);
     expect(await getVar(page, 'chosenPlan')).toBe(0);
     expect(await getVar(page, 'showComp')).toBe(0);
   });
@@ -397,19 +397,19 @@ test.describe('Companions — hunt setup integration', () => {
   // her later via the in-hunt companion icon.
   test('HuntStart auto-attaches the companion when player skips "Talk to"', async ({ game: page }) => {
     await selectCompanion(page, 'Alice');
-    await setVar(page, 'isCompChosen', 0);
+    await setVar(page, 'isCompChosen', false);
     await setVar(page, 'chosenPlan', 0);
     await setVar(page, 'showComp', 0);
     await setupHunt(page, 'Shade', 'owaissa');
     await goToPassage(page, 'HuntStart');
-    expect(await getVar(page, 'isCompChosen')).toBe(1);
+    expect(await getVar(page, 'isCompChosen')).toBe(true);
     expect(await getVar(page, 'chosenPlan')).toBe('Plan1');
     expect(await getVar(page, 'showComp')).toBe(1); // CompanionShow.VISIBLE
   });
 
   test('HuntStart auto-attach preserves a player-picked plan', async ({ game: page }) => {
     await selectCompanion(page, 'Alice');
-    await setVar(page, 'isCompChosen', 1);
+    await setVar(page, 'isCompChosen', true);
     await setVar(page, 'chosenPlan', 'Plan3');
     await setVar(page, 'showComp', 0);
     await setupHunt(page, 'Shade', 'owaissa');
@@ -427,7 +427,7 @@ test.describe('Companions — hunt setup integration', () => {
       SugarCube.setup.Ghosts.cheatStartHunt('Shade');
       SugarCube.setup.HuntController.setHuntMode(SugarCube.setup.HuntController.HuntMode.ACTIVE);
     });
-    await setVar(page, 'isCompChosen', 1);
+    await setVar(page, 'isCompChosen', true);
     await setVar(page, 'chosenPlan', 'Plan1');
     await page.evaluate(() => {
       SugarCube.State.variables.showComp = SugarCube.setup.CompanionShow.VISIBLE;
@@ -451,10 +451,10 @@ test.describe('Companions — hunt setup integration', () => {
 
   test('HuntStart with Owaissa marks the companion flag active', async ({ game: page }) => {
     await selectCompanion(page, 'Alice');
-    await setVar(page, 'isCompChosen', 0);
+    await setVar(page, 'isCompChosen', false);
     await setupHunt(page, 'Shade', 'owaissa');
     await goToPassage(page, 'HuntStart');
-    expect(await getVar(page, 'isCompChosen')).toBe(1);
+    expect(await getVar(page, 'isCompChosen')).toBe(true);
   });
 
   // The companion icon must render in the lower-right of the HuntRun
@@ -465,7 +465,7 @@ test.describe('Companions — hunt setup integration', () => {
   test('HuntRun renders the companion card in the toolbar between tools and nav', async ({ game: page }) => {
     await selectCompanion(page, 'Alice');
     await setupHunt(page, 'Shade', 'owaissa');
-    await setVar(page, 'isCompChosen', 1);
+    await setVar(page, 'isCompChosen', true);
     await setVar(page, 'chosenPlan', 'Plan1');
     await page.evaluate(() => {
       SugarCube.State.variables.showComp = SugarCube.setup.CompanionShow.VISIBLE;
@@ -498,7 +498,7 @@ test.describe('Companions — hunt setup integration', () => {
   test('HuntRun companion card swaps to question-mark on ATTACK_FAILED', async ({ game: page }) => {
     await selectCompanion(page, 'Alice');
     await setupHunt(page, 'Shade', 'owaissa');
-    await setVar(page, 'isCompChosen', 1);
+    await setVar(page, 'isCompChosen', true);
     await setVar(page, 'chosenPlan', 'Plan1');
     await page.evaluate(() => {
       SugarCube.State.variables.showComp = SugarCube.setup.CompanionShow.ATTACK_FAILED;
@@ -515,7 +515,7 @@ test.describe('Companions — hunt setup integration', () => {
   test('HuntRun companion card links to CompanionSucceeded on ATTACK_SAFE', async ({ game: page }) => {
     await selectCompanion(page, 'Alice');
     await setupHunt(page, 'Shade', 'owaissa');
-    await setVar(page, 'isCompChosen', 1);
+    await setVar(page, 'isCompChosen', true);
     await setVar(page, 'chosenPlan', 'Plan1');
     await page.evaluate(() => {
       SugarCube.State.variables.showComp = SugarCube.setup.CompanionShow.ATTACK_SAFE;
