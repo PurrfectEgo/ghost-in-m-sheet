@@ -875,6 +875,44 @@ test.describe('E2E: hunt lifecycle', () => {
     await page.waitForFunction(() => SugarCube.State.passage === 'HuntRun');
   });
 
+  test('UVL hit in hunt mode routes to UvlFound and pops up the picture', async () => {
+    /* Regression: with the top-of-screen tool tray removed, a UVL hit
+       has nowhere to render its image pack -- the renderer output
+       lands in the hidden #hunt-tool-sink. UvlFound is the equivalent
+       of GwbFound / EctoglassFound: it reads $evidenceFind.pack and
+       renders the picture full-size on its own passage. */
+    test.setTimeout(15_000);
+
+    await goToPassage(page, 'GhostStreet');
+    await clickHuntCard(page);
+    await ensureNotEmptyBag(page);
+    await clickLink(page, 'Enter the hunt', 'HuntRun');
+
+    await stubPerTickGatesQuiet(page);
+    await fastToolTicks(page);
+    // Force the renderer down the hit branch by giving the ghost the
+    // UVL evidence + flagging the UVL tool as freshly activated.
+    await page.evaluate(() => {
+      const g = SugarCube.setup.HuntController.activeGhost();
+      if (!g.evidence.includes('uvl')) g.evidence.push('uvl');
+      SugarCube.setup.activateTool('uvl');
+    });
+
+    const uvlCard = page.locator('.hunt-tool-card').filter({ hasText: 'UVL' });
+    await expect(uvlCard).toHaveCount(1);
+    await uvlCard.locator('a').click();
+
+    await page.waitForFunction(() => SugarCube.State.passage === 'UvlFound');
+
+    // Image pack landed in the passage.
+    await expect(page.locator('.passage img')).toHaveCount(1);
+    expect(await getVar(page, 'evidenceFind').then(v => v && v.tool)).toBe('uvl');
+
+    // Back link returns the player to HuntRun.
+    await page.locator('.passage').getByText('Back', { exact: true }).click();
+    await page.waitForFunction(() => SugarCube.State.passage === 'HuntRun');
+  });
+
   test('Spiritbox click with the lights on drops a thumbs-down into the card', async () => {
     /* Lights-off is a tool-wide rule
        (setup.searchToolDefs.spiritbox.needsLightCheck): the hunt

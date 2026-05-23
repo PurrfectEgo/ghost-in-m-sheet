@@ -38,12 +38,6 @@
     /* Render helpers that emit canonical Twine markup so the output path
        matches what the passages used to write by hand. */
 
-    function packMarkup(pack) {
-        var args = ['"' + pack.prefix + '"', pack.start, pack.end, '"' + pack.ext + '"'];
-        if (pack.cssClass) args.push('"' + pack.cssClass + '"');
-        return '<<randRangeImg ' + args.join(' ') + '>>';
-    }
-
     function notFoundMarkup(toolKey) {
         return '<<notFound "' + NOT_FOUND_COPY[toolKey] + '">>';
     }
@@ -207,20 +201,24 @@
             _huntCardMarkup = huntCardThumbsDown();
             return notFoundMarkup("uvl");
         }
+        var pack;
         if (setup.HauntedHouses.isIronclad()) {
-            _huntCardMarkup = '';
-            return packMarkup({ prefix: "mechanics/uvl/ironclad", start: 1, end: 6, ext: ".png" })
-                + '\n' + MESSAGES.uvl + '<br>';
+            pack = { prefix: "mechanics/uvl/ironclad", start: 1, end: 6, ext: ".png" };
+        } else {
+            /* Upper-vs-lower 50/50 (random 1..2). */
+            var useLower = (randInt(1, 2) === 1);
+            pack = useLower ? uvlLowerPack() : uvlUpperPack();
         }
-        /* Upper-vs-lower 50/50 (random 1..2). */
-        var useLower = (randInt(1, 2) === 1);
-        var pack = useLower ? uvlLowerPack() : uvlUpperPack();
         if (!pack) {
             _huntCardMarkup = huntCardThumbsDown();
             return notFoundMarkup("uvl");
         }
+        /* Hit routes to UvlFound so the picture pops up full-size --
+           the hunt-mode renderer output is wikified into the hidden
+           #hunt-tool-sink, so inlining the pack here would never be
+           visible. Same shape as gwb/plasm hits. */
         _huntCardMarkup = '';
-        return packMarkup(pack) + '\n' + MESSAGES.uvl + '<br>';
+        return foundPassageMarkup("uvl", "UvlFound", { pack: pack, message: MESSAGES.uvl });
     }
 
     /* Spiritbox: four mutually exclusive branches rolled off one d100.
