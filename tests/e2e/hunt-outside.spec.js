@@ -236,7 +236,6 @@ test.describe('E2E: Hunt Outside menu', () => {
       V.isBottomStolen  = false;
       V.isShirtStolen   = false;
       V.isBraStolen     = false;
-      V.isClothesStolen = true;
     });
   }
 
@@ -300,7 +299,6 @@ test.describe('E2E: Hunt Outside menu', () => {
       V.isBottomStolen  = false;
       V.isShirtStolen   = false;
       V.isBraStolen     = false;
-      V.isClothesStolen = false;
     });
     await setVar(page, 'mc.exhibitionism', 0);
 
@@ -330,7 +328,6 @@ test.describe('E2E: Hunt Outside menu', () => {
       V.isBottomStolen  = false;
       V.isShirtStolen   = true;
       V.isBraStolen     = false;
-      V.isClothesStolen = true;
     });
     await setVar(page, 'mc.exhibitionism', 0);
 
