@@ -172,6 +172,7 @@ setup.Mc = (function () {
 		earn: function (n) {
 			sv().mc.money += n;
 			sv().earnedMoney += n;
+			setup.Ledger.recordMoney(sv().mc.money);
 		},
 
 		// --- Inventory consumables: amount-aware mutators -------
@@ -182,6 +183,7 @@ setup.Mc = (function () {
 			if (sv().energyDrinkAmount > 0) {
 				sv().energyDrinkAmount -= 1;
 				sv().mc.energy = Math.min(sv().mc.energyMax, sv().mc.energy + 3);
+				setup.Ledger.recordEnergy(sv().mc.energy);
 				return true;
 			}
 			return false;
@@ -241,6 +243,7 @@ setup.Mc = (function () {
 		// --- Lust helpers --------------------------------------
 		clampLust: function () {
 			sv().mc.lust = Number(sv().mc.lust.toFixed(2));
+			setup.Ledger.recordLust(sv().mc.lust);
 		},
 
 		// --- addSanity widget core --------------------------------
@@ -261,6 +264,7 @@ setup.Mc = (function () {
 				result = R.COLLAPSED;
 			}
 			m.sanityUp = m.sanity.toFixed(2);
+			setup.Ledger.recordSanity(m.sanity);
 			return result;
 		},
 
@@ -270,6 +274,7 @@ setup.Mc = (function () {
 			m.energy += delta;
 			if (m.energy >= m.energyMax) { m.energy = m.energyMax; }
 			if (m.energy <= 0)           { m.energy = 0; }
+			setup.Ledger.recordEnergy(m.energy);
 		},
 
 		// --- addLust widget core --------------------------------
@@ -289,6 +294,7 @@ setup.Mc = (function () {
 			if (v < 0) v = 0;
 			if (v > m.lustMax) v = m.lustMax;
 			m.lust = v;
+			setup.Ledger.recordLust(m.lust);
 		},
 
 		// --- addFit widget core -----------------------------------
@@ -378,22 +384,31 @@ setup.Mc = (function () {
 	   lust/sanity/energy/fit suppress the auto-generated add — the
 	   clamped/cascade versions defined manually above are canonical. */
 	setup.defineAccessors(api, function () { return sv().mc; }, [
-		'money',
+		{ name: 'money', writeHook: function (_oldV, newV) {
+			setup.Ledger.recordMoney(newV);
+		} },
 		/* sanityUp is the rounded display string the sidebar sanity
 		   meter's label binds to ($mc.sanityUp). Every sanity mutation
 		   re-stamps it so the number on the bar stays in sync with the
 		   animated fill — without the hook, mid-passage refreshMeter
-		   calls would leave the label frozen at the previous value. */
-		{ name: 'sanity', add: false, writeHook: function (oldV, newV) {
+		   calls would leave the label frozen at the previous value.
+		   Also mirrors the new live value into the ledger so cheat
+		   detection stays in lockstep with any direct setSanity write. */
+		{ name: 'sanity', add: false, writeHook: function (_oldV, newV) {
 			sv().mc.sanityUp = Number(newV || 0).toFixed(2);
+			setup.Ledger.recordSanity(newV);
 		} },
 		'sanityMax',
 		'sanityUp',
-		{ name: 'energy', add: false },
+		{ name: 'energy', add: false, writeHook: function (_oldV, newV) {
+			setup.Ledger.recordEnergy(newV);
+		} },
 		'energyMax',
 		'energyPoints',
 		'corruption',
-		{ name: 'lust', add: false },
+		{ name: 'lust', add: false, writeHook: function (_oldV, newV) {
+			setup.Ledger.recordLust(newV);
+		} },
 		'name',
 		{ name: 'fit', add: false },
 		'lvl',
