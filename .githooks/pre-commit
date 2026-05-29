@@ -1,10 +1,22 @@
 #!/bin/bash
 
 SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$SCRIPT_DIR" || exit 1
+
+# Mirror the VSCode emeraldwalk.runonsave action (see .vscode/settings.json):
+# format staged .tw files and re-stage so the commit lands canonicalised.
+staged_tw=$(git diff --cached --name-only --diff-filter=ACM -- '*.tw')
+if [ -n "$staged_tw" ]; then
+  echo "Formatting staged .tw files..."
+  while IFS= read -r f; do
+    [ -f "$f" ] || continue
+    python3 tools/format_twee.py "$f" || { echo "Formatter failed on $f. Commit aborted."; exit 1; }
+    git add -- "$f"
+  done <<< "$staged_tw"
+fi
+
 echo "Running build before commit..."
 bash "$SCRIPT_DIR/scripts/build.sh"
-
-cd "$SCRIPT_DIR" || exit 1
 
 echo "Running lint before commit..."
 npm run lint
