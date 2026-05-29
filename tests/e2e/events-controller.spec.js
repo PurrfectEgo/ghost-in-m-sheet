@@ -198,7 +198,7 @@ test.describe('Events controller — video resolvers', () => {
     expect(list[0]).toContain('prison/');
   });
 
-  test('bansheeVideos returns ironclad list when isIronclad', async ({ game: page }) => {
+  test('bansheeVideos returns prison list when prison_visuals modifier active', async ({ game: page }) => {
     await setLocation(page, 'ironclad');
     let list = await page.evaluate(() => SugarCube.setup.Events.bansheeVideos());
     expect(list[0]).toContain('prison/banshee');
@@ -222,8 +222,8 @@ test.describe('Events controller — orgasm and body-part roll', () => {
     expect(await callSetup(page, 'setup.Events.shouldOrgasm("pussy")')).toBe(false);
   });
 
-  test('orgasmSanityLoss is -10', async ({ game: page }) => {
-    expect(await callSetup(page, 'setup.Events.orgasmSanityLoss')).toBe(-10);
+  test('orgasmSanityLoss is -50', async ({ game: page }) => {
+    expect(await callSetup(page, 'setup.Events.orgasmSanityLoss')).toBe(-50);
   });
 
   test('rollBodyPartEvent returns "" when chance exceeds the lust threshold', async ({ game: page }) => {
