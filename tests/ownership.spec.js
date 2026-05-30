@@ -24,7 +24,7 @@ const PASSAGES_ROOT = path.join(__dirname, '..', 'passages');
    runtime. Catches the regression where a controller forgets to
    expose OWNED_VARS (and so vanishes from the dynamic discovery
    below) without us noticing. Bump as new controllers are added. */
-const MIN_CONTROLLER_COUNT = 23;
+const MIN_CONTROLLER_COUNT = 25;
 
 /* Top-level State.variables keys with no owning controller. Only two
    are allowed:
@@ -131,8 +131,11 @@ test.describe('Variable ownership', () => {
 		//     active staticHouseId lives on $run.staticHouseId, owned
 		//     by setup.HuntController; the staging slot $pendingHuntHouseId
 		//     is owned there too.
+		//   - HuntMetaUnlocks: pure-functional applier of meta-shop
+		//     unlock effects at hunt start. Writes go to $run (owned
+		//     by HuntController) and $mc / $meta through controller APIs.
 		// Every other discovered controller should claim at least one var.
-		const STATELESS_ALLOWED = new Set(['Salon', 'FloorPlan', 'Modifiers', 'Templates', 'HuntHouses']);
+		const STATELESS_ALLOWED = new Set(['Salon', 'FloorPlan', 'Modifiers', 'Templates', 'HuntHouses', 'HuntMetaUnlocks']);
 		const empty = controllerNames
 			.filter((n) => ownedByName[n].length === 0 && !STATELESS_ALLOWED.has(n));
 		expect(

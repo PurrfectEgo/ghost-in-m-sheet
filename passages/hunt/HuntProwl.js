@@ -63,8 +63,7 @@ setup.HuntProwl = (function () {
 		if (setup.Ghosts.elapsedTimeProwl() < setup.Ghosts.prowlTimeRemain()) return false;
 		var threshold = 6 + setup.HauntConditions.snapshot().prowlChanceBonus;
 		if (Math.floor(Math.random() * 101) > threshold) return false;
-		var g = HC().activeGhost();
-		return !!(g && g.canProwl({ sanity: setup.Mc.sanity(), lust: setup.Mc.lust() }));
+		return setup.ActiveGhost.canProwl({ sanity: setup.Mc.sanity(), lust: setup.Mc.lust() });
 	}
 
 	// --- Random steal trigger ----------------------------------
@@ -120,7 +119,7 @@ setup.HuntProwl = (function () {
 	   windows here -- a prowl disturbs the air enough for the
 	   readers to pick up trail and residue, regardless of which
 	   branch the player resolves into. Hunt cleanup
-	   (cleanupAfterHunt -> resetTools) clears both activations
+	   (cleanupAfterHuntFinalized -> resetTools) clears both activations
 	   back to defaults at hunt end. */
 	function beginProwlEvent() {
 		setup.Ghosts.activateProwl();

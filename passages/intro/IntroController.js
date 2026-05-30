@@ -1,13 +1,12 @@
 /*
- * Centralized helpers for the intro / character-creation flow.
+ * Shape registry for the intro / character-creation flow.
  *
- * The $sensualBodyPart map is set up in :: Intro by the radio
- * buttons, lazily defaulted in PassageReady, defaulted again by
- * SaveMigration, and clamped to a max of 6 in two places. Before
- * this controller existed those constants ('brain', 'tits', ...,
- * the base of 1 and the cap of 6) lived in four files. Anything
- * that needs to seed, clamp, or enumerate the body parts now
- * reads from setup.Intro.
+ * IntroController owns the body-part vocabulary (BODY_PARTS), the
+ * sensitivity tiers (BASE / MAX / CHOSEN), and the default radio
+ * choice. The $sensualBodyPart map + $sensualBodyPartChoice slot
+ * themselves live on $mc and are accessed through setup.Mc -- this
+ * controller only defines the shape and registers the
+ * commit-on-passage-leave hook.
  */
 setup.Intro = (function () {
 	var BODY_PARTS         = ['brain', 'tits', 'ass', 'bottom', 'mouth', 'pussy', 'anal'];
@@ -15,7 +14,13 @@ setup.Intro = (function () {
 	var MAX_SENSITIVITY    = 6;
 	var CHOSEN_SENSITIVITY = 3;
 	var DEFAULT_CHOICE     = 'brain';
-	var CHOICE_PASSAGES    = ['Intro', 'Guide'];
+	/* Passages that make up the intro/help flow. Picking a radio in
+	   Intro only stages the choice; commit fires once the player
+	   actually exits this flow into gameplay. The Intro passage links
+	   directly to Evidence (the "Player guide"), so a check that only
+	   inspected previous() would mis-fire the commit on that detour
+	   and lock brain at CHOSEN_SENSITIVITY regardless of pick. */
+	var FLOW_PASSAGES      = ['Intro', 'Guide', 'Evidence'];
 
 	function defaultSensualBodyParts() {
 		var out = {};
@@ -27,21 +32,6 @@ setup.Intro = (function () {
 
 	function defaultSensualBodyPartChoice() {
 		return DEFAULT_CHOICE;
-	}
-
-	function applyChoice() {
-		// Mirror $sensualBodyPartChoice into the sensitivity map.
-		// Uses max-merge so re-visiting Guide mid-game never nerfs
-		// a part the player has already trained up.
-		var sv = State.variables;
-		if (!sv) return;
-		var c = sv.sensualBodyPartChoice;
-		if (BODY_PARTS.indexOf(c) === -1) return;
-		if (!sv.sensualBodyPart || typeof sv.sensualBodyPart !== 'object') return;
-		var current = Number(sv.sensualBodyPart[c]) || 0;
-		if (current < CHOSEN_SENSITIVITY) {
-			sv.sensualBodyPart[c] = CHOSEN_SENSITIVITY;
-		}
 	}
 
 	function clampSensualBodyParts(obj) {
@@ -67,26 +57,18 @@ setup.Intro = (function () {
 		}
 	}
 
-	function ensureSensualBodyParts() {
-		// Lazy seed for very old saves / brand-new games where
-		// SaveMigration hasn't run (no save loaded yet).
-		var sv = State.variables;
-		if (!sv.sensualBodyPart || typeof sv.sensualBodyPart !== 'object') {
-			sv.sensualBodyPart = defaultSensualBodyParts();
-		}
-		if (typeof sv.sensualBodyPartChoice !== 'string' ||
-			BODY_PARTS.indexOf(sv.sensualBodyPartChoice) === -1) {
-			sv.sensualBodyPartChoice = DEFAULT_CHOICE;
-		}
-	}
-
 	// The chosen body part is committed when the player leaves the
-	// Intro / Guide screen — picking a radio only stages the choice in
-	// $sensualBodyPartChoice. This way a brand-new game shows every part
-	// at the BASE_SENSITIVITY of 1 until the player actually moves on.
+	// intro/help flow into gameplay — picking a radio only stages the
+	// choice in $sensualBodyPartChoice. This way a brand-new game
+	// shows every part at the BASE_SENSITIVITY of 1 until the player
+	// actually moves on. Navigating between flow passages (Intro →
+	// Evidence, Guide ↔ Evidence) does NOT commit; the staged choice
+	// can still be changed until the player advances into the game.
 	$(document).on(':passagestart.sensualBodyPartChoice', function () {
-		if (CHOICE_PASSAGES.indexOf(previous()) !== -1) {
-			applyChoice();
+		var fromFlow = FLOW_PASSAGES.indexOf(previous()) !== -1;
+		var toFlow   = FLOW_PASSAGES.indexOf(passage())  !== -1;
+		if (fromFlow && !toFlow) {
+			setup.Mc.commitSensualBodyPartChoice();
 		}
 	});
 
@@ -99,15 +81,7 @@ setup.Intro = (function () {
 		defaultSensualBodyPartChoice:  defaultSensualBodyPartChoice,
 		clampSensualBodyParts:         clampSensualBodyParts,
 		cheatMaximizeSensualBodyParts: cheatMaximizeSensualBodyParts,
-		ensureSensualBodyParts:        ensureSensualBodyParts,
-		currentSensualBodyPart:        function () { return State.variables.sensualBodyPart; },
-		bodyPart:                      function (part) {
-			var sv = State.variables.sensualBodyPart;
-			return sv ? sv[part] : 0;
-		},
-		adjustBodyPart:                function (part, delta) {
-			var sv = State.variables.sensualBodyPart;
-			if (sv) { sv[part] += delta; }
-		}
+		ensureSensualBodyParts:        function () { setup.Mc.ensureSensualBodyParts(); },
+		currentSensualBodyPart:        function () { return setup.Mc.sensualBodyPart(); }
 	};
 })();
