@@ -111,6 +111,34 @@ test.describe('WitchContract storefront', () => {
     expect(after).toEqual(['owaissa']);
   });
 
+  test('buying the warden outfit surfaces the Ironclad contract same-day (no sleep needed)', async () => {
+    /* Repro for "can't buy a prison contract even after getting the
+       uniform". The player reaches the prison level gate, visits
+       Khadija's board (priming today's offered list while ironclad is
+       still warden-gated out), then walks to the mall and buys the
+       warden outfit. Returning to the board the SAME day must surface
+       the ironclad contract -- buying the outfit opens the gate, so it
+       has to reroll the day-cached board instead of waiting for the
+       next sleep/midnight. */
+    await page.evaluate(() => { SugarCube.State.variables.mc.lvl = 5; });
+    /* Prime today's board while the warden gate is still closed. */
+    await page.evaluate(() => { SugarCube.State.variables.contracts.lastRefreshDay = -1; });
+    await page.evaluate(() => SugarCube.setup.WitchContract.ensureFresh());
+    expect((await callSetup(page, 'setup.WitchContract.offered()')).map(c => c.houseId))
+      .not.toContain('ironclad');
+
+    /* Walk the real mall purchase path: witch dropped the hint
+       (HINT_OFFERED = 1), MC has the cash, buy the outfit. */
+    await page.evaluate(() => { SugarCube.State.variables.wardenClothesStage = 1; });
+    await page.evaluate(() => { SugarCube.setup.Mc.setMoney(500); });
+    await page.evaluate(() => SugarCube.setup.Mall.buyWardenOutfit());
+    expect(await getVar(page, 'wardenClothesStage')).toBe(2); // OUTFIT_OWNED
+
+    /* Same day, no sleep -- ironclad should now be on the board. */
+    expect((await callSetup(page, 'setup.WitchContract.offered()')).map(c => c.houseId))
+      .toContain('ironclad');
+  });
+
   test('sleepAdvance() rerolls the board on a sub-midnight nap', async () => {
     /* Hold the clock at 18:00 + sleep only 1 hour so $dailySeed never
        reseeds. Without the sleep-time refresh hook the board would
@@ -199,6 +227,20 @@ test.describe('WitchContract storefront', () => {
     await page.evaluate(() => SugarCube.setup.WitchContract.cheatGrantContract('owaissa'));
     expect(await callSetup(page, 'setup.WitchContract.canEnterHouse("owaissa")')).toBe(true);
     expect(await callSetup(page, 'setup.WitchContract.canEnterHouse("elm")')).toBe(false);
+  });
+
+  test('canEnterHouse() seals the house once a failed-hunt pending guess is held', async () => {
+    /* A contract hunt that ended without a call stashes the true
+       ghost identity on the held contract so the player can guess at
+       Khadija's desk the next day. Until that's settled (and a new
+       contract bought), the house is sealed -- you can't walk back in
+       to retry the same run. */
+    await page.evaluate(() => SugarCube.setup.WitchContract.cheatGrantContract('owaissa'));
+    expect(await callSetup(page, 'setup.WitchContract.canEnterHouse("owaissa")')).toBe(true);
+
+    await page.evaluate(() => SugarCube.setup.WitchContract.markHeldPendingGuess('Shade'));
+    expect(await callSetup(page, 'setup.WitchContract.hasPendingGuess()')).toBe(true);
+    expect(await callSetup(page, 'setup.WitchContract.canEnterHouse("owaissa")')).toBe(false);
   });
 
   // --- Resolving a held contract ----------------------------------------

@@ -12,8 +12,11 @@ setup.SeduceGhostMinigame = (function () {
 	var OWNED_VARS = Object.freeze([
 		'minigameVideo',
 		'minigameEventFailed',
-		'ghostOrgasmMeter'
+		'ghostOrgasmMeter',
+		'minigameGhostEscaped'
 	]);
+
+	var GHOST_ESCAPE_CHANCE = 60;
 
 	function img(src) { return { type: "image", src: src }; }
 	function vid(src) { return { type: "video", src: src }; }
@@ -227,6 +230,9 @@ setup.SeduceGhostMinigame = (function () {
 	// States where resist costs no energy and does not change meters
 	var FREE_RESIST = ["subdueslapface", "subduetitjob", "subdueassjob"];
 
+	var ACTION_ENERGY_COST = 1;
+	var SUBMIT_ENERGY_GAIN = 0.2;
+
 	// ----------------------------------------------------------------
 	// Transition helpers
 	// ----------------------------------------------------------------
@@ -275,12 +281,23 @@ setup.SeduceGhostMinigame = (function () {
 		// --- State queries ---
 		hasSubdue:          function (s) { return SUBDUE.hasOwnProperty(s || sv().minigameVideo); },
 		resistCostsEnergy:  function (s) { return FREE_RESIST.indexOf(s || sv().minigameVideo) === -1; },
+		actionEnergyCost:   function () { return ACTION_ENERGY_COST; },
 		minigameVideo:       function () { return sv().minigameVideo; },
 		minigameEventFailed: function () { return sv().minigameEventFailed; },
 		clearMinigameEventFailed: function () { delete sv().minigameEventFailed; },
 		ghostOrgasmMeter:    function () { return sv().ghostOrgasmMeter; },
 		clampGhostOrgasmFloor: function () {
 			if ((sv().ghostOrgasmMeter || 0) <= 0) sv().ghostOrgasmMeter = 0;
+		},
+
+		// Did the ghost escape on this win instead of staying to be
+		// identified? Rolled lazily on first read and cached so the
+		// win screen renders one stable outcome; reset by init().
+		ghostEscaped: function () {
+			if (typeof sv().minigameGhostEscaped !== "boolean") {
+				sv().minigameGhostEscaped = random(1, 100) <= GHOST_ESCAPE_CHANCE;
+			}
+			return sv().minigameGhostEscaped;
 		},
 
 		// --- Video lookup ---
@@ -305,6 +322,7 @@ setup.SeduceGhostMinigame = (function () {
 		init: function () {
 			sv().minigameVideo = "start";
 			sv().ghostOrgasmMeter = 0;
+			delete sv().minigameGhostEscaped;
 			setup.Mc.setOrgasmMeter(0);
 		},
 
@@ -313,6 +331,7 @@ setup.SeduceGhostMinigame = (function () {
 		},
 
 		tryAttract: function () {
+			setup.Mc.addEnergy(-ACTION_ENERGY_COST);
 			if (random(30, 100) <= setup.Mc.beauty()) {
 				sv().minigameEventFailed = 0;
 				sv().minigameVideo = "seduce";
@@ -323,6 +342,7 @@ setup.SeduceGhostMinigame = (function () {
 		},
 
 		tryAgain: function () {
+			setup.Mc.addEnergy(-ACTION_ENERGY_COST);
 			if (random(30, 100) <= setup.Mc.beauty()) {
 				sv().minigameEventFailed = 0;
 				sv().minigameVideo = pickRandom(TEASE_POOL);
@@ -333,6 +353,7 @@ setup.SeduceGhostMinigame = (function () {
 		},
 
 		continueSeduce: function () {
+			setup.Mc.addEnergy(SUBMIT_ENERGY_GAIN);
 			setup.Mc.setOrgasmMeter(setup.Mc.orgasmMeter() + random(4, 8));
 			sv().ghostOrgasmMeter = (sv().ghostOrgasmMeter || 0) + random(2, 6);
 			if (!ghostWin() && !mcWin()) {
@@ -353,6 +374,7 @@ setup.SeduceGhostMinigame = (function () {
 		resist: function () {
 			var state = sv().minigameVideo;
 			if (FREE_RESIST.indexOf(state) === -1) {
+				setup.Mc.addEnergy(-ACTION_ENERGY_COST);
 				setup.Mc.setOrgasmMeter(setup.Mc.orgasmMeter() - random(2, 6));
 				sv().ghostOrgasmMeter = (sv().ghostOrgasmMeter || 0) - random(0, 5);
 				clampMeters();
@@ -362,6 +384,7 @@ setup.SeduceGhostMinigame = (function () {
 
 		submit: function () {
 			var state = sv().minigameVideo;
+			setup.Mc.addEnergy(SUBMIT_ENERGY_GAIN);
 			setup.Mc.setOrgasmMeter(setup.Mc.orgasmMeter() + random(4, 8));
 			var ghostInc = (state === "subduetitjob") ? random(2, 5) : random(2, 6);
 			sv().ghostOrgasmMeter = (sv().ghostOrgasmMeter || 0) + ghostInc;
@@ -373,6 +396,7 @@ setup.SeduceGhostMinigame = (function () {
 
 		subdue: function () {
 			var state = sv().minigameVideo;
+			setup.Mc.addEnergy(-ACTION_ENERGY_COST);
 			setup.Mc.setOrgasmMeter(setup.Mc.orgasmMeter() + random(2, 6));
 			sv().ghostOrgasmMeter = (sv().ghostOrgasmMeter || 0) + random(5, 10);
 			rollSubdue(state);

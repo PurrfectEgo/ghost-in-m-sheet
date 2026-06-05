@@ -128,6 +128,11 @@ setup.Tick = (function () {
 		setup.Cooldowns.resetDaily();
 		setup.Home.tickHomeMidnight();
 		setup.Companion.advanceSoloHuntsAtMidnight();
+		/* Companion recruitment is NOT cleared here. It is a per-hunt deal
+		   torn down by HuntController.end() (see endHuntRecruitment); a
+		   recruit must survive a midnight rollover so it is still attached
+		   when a hunt that started late -- or one the player begins just
+		   after midnight -- reaches the haunted-house entrance. */
 		setup.SpecialEvent.tickMareStageMidnight();
 		setup.MissingWomen.tickRescueClockMidnight();
 	}
@@ -208,7 +213,9 @@ setup.Tick = (function () {
 		setup.HuntController.shuffleGhostRoom();
 
 		if (setup.Time.isMorningPlus() && setup.HuntController.isHunting()) {
-			return { goto: "HuntOverTime" };
+			var timeExit = setup.HuntController.huntOverPassage(
+				setup.HuntEnums.FailureReason.TIME);
+			return { goto: timeExit || "HuntOverTime" };
 		}
 
 		/* Companion-found redirect. Issued from PassageDone (not

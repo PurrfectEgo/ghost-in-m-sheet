@@ -491,6 +491,10 @@ setup.Mc = (function () {
 	api.lustPct = function () { return sv().mc.lust / 100; };
 	api.sanityPct = function () { return sv().mc.sanity / sv().mc.sanityMax; };
 	api.energyPct = function () { return sv().mc.energy / sv().mc.energyMax; };
+	api.energyDisplay = function () {
+		var snapped = Math.round(sv().mc.energy * 1e8) / 1e8;
+		return Math.floor(snapped * 100 + 1e-9) / 100;
+	};
 	return api;
 })();
 
