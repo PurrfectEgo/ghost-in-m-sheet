@@ -1,21 +1,43 @@
 :: ChangeLog {"position":"100,700","size":"100,100"}
-v.0.5.3
-- New "rogue-like" houses with new rooms and mechanics. Will be greatly expanded in future.
-- Keyboard navigation shortcuts added (hold ALT/CMD to get key hints)
-- Removed the Enigma haunted house (coming back in 2 or 3 updates)
-- Ectoplasm is collected during hunts, and the witch and no longer requires an active contract
-- Ghost movement now scales with MC prettiness
-- Baiting reworked: it ramps lust with orgasm risk and a duration limit, plus new bait videos
-- Random hunt events are now weighted by what the MC is wearing
-- Hornier spirit box responses
-- Body-part sensitivity now shown in the UI and drives lust gain; sensitivities grow during play and soft-cap around 20
-- Alarm clock in the bedroom, EMF/UVL timers under the clock
-- Autosave when the MC sleeps; energy regained on the midnight skip
-- Settings menu, with a "mute all videos" toggle (videos now default to unmuted)
-- Option to buy back clothing lost during a hunt
-- Click the side panel icons to undress during hunts; clothes removed mid-hunt are restored on exit
-- Cheats moved to the Settings menu and persist between saves; added a tarot-card cheat
-- Library tips added
+v.0.5.4
+- Achievement unlocked: earn them as you play and show them off on a new trophy shelf in the bedroom (achievements lock out if you use cheats)
+- Flashbacks: replay scenes you've already unlocked, from the bedroom
+- Evidence negation in the Notebook: cross out evidence the ghost doesn't have to narrow down its identity
+- New witch quest to unlock the rogue-like hunts; rogue hunts and ectoplasm now stay hidden until you've unlocked them
+- New scene: the ambulance
+- New delivery-manager scenes
+- Reworked and expanded the seduce-the-ghost minigame during prowls
+- Text font selection added to Settings, plus font and style polish throughout
+- Some quest hints to point you toward what to do next
+- Leveling progress indicator added
+- Tool progress is now a pie over the tools (the old top bar is gone); status chips moved to the left with less duplicate info, and hunt actions are grouped under the tools
+- Standardized on a 24-hour clock everywhere
+- Time-based touch escalation: the longer a hunt goes on, the harder it ramps
+- Stolen clothes now scatter around the house, ghosts steal more with the lights off, and the Freeze wish now costs all your clothes
+- Rare loot: hunts can now drop bonus cash and ectoplasm
+- Monkey Paw and tarot are now gated behind level 2, and the paw guide is split into two parts
+- Balance: energy drink restored to +3, consumable prices tripled, no more reward for fleeing a rogue hunt
+- More events grant XP
+- The trans companions are temporarily removed for reworking (they'll be back)
+- Mobile layout fixes, an improved hunt-arrival screen, and many bug fixes (tarot odds, ghost light effects, vanishing clothes, the item detector, sanity readouts)
+<<linkappend "v.0.5.3">>
+	- New "rogue-like" houses with new rooms and mechanics. Will be greatly expanded in future.
+	- Keyboard navigation shortcuts added (hold ALT/CMD to get key hints)
+	- Removed the Enigma haunted house (coming back in 2 or 3 updates)
+	- Ectoplasm is collected during hunts, and the witch and no longer requires an active contract
+	- Ghost movement now scales with MC prettiness
+	- Baiting reworked: it ramps lust with orgasm risk and a duration limit, plus new bait videos
+	- Random hunt events are now weighted by what the MC is wearing
+	- Hornier spirit box responses
+	- Body-part sensitivity now shown in the UI and drives lust gain; sensitivities grow during play and soft-cap around 20
+	- Alarm clock in the bedroom, EMF/UVL timers under the clock
+	- Autosave when the MC sleeps; energy regained on the midnight skip
+	- Settings menu, with a "mute all videos" toggle (videos now default to unmuted)
+	- Option to buy back clothing lost during a hunt
+	- Click the side panel icons to undress during hunts; clothes removed mid-hunt are restored on exit
+	- Cheats moved to the Settings menu and persist between saves; added a tarot-card cheat
+	- Library tips added\
+<</linkappend>>
 <<linkappend "v.0.5.2">>
 	- Major ghost hunt rework: new HUD shows live status, lights-off has tactical use, and ghosts now respond to lust, clothing, overcharged tools, and bait
 	- Hunt difficulty tuned so a naiive strategy with no purchased equipment will win about 85% of the time (reduced from 99.9%).
