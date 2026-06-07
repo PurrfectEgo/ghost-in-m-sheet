@@ -250,6 +250,12 @@ Setting.addList("fontChoice", {
 });
 $(document).on(":passagestart", function () { setup.Gui.applyFontPreference(); });
 
+Setting.addList("timeFormat", {
+    label   : "Display Format for Time",
+    list    : ["24 Hour", "12 Hour"],
+    default : "24 Hour",
+});
+
 /* Stateful cheats are registered through SugarCube's Setting API
    because they have a meaningful persisted value (toggle on/off,
    list selection). They live under a single "Cheats" header,
@@ -318,7 +324,8 @@ $(document).one(":storyready", function () {
 		if (action) action();
 		if (current === _offCheatValue[source]) return;
 		setup.StoryEvents.emit(setup.StoryEvents.Event.CHEAT_USED, { source: source });
-	}
+	};
+
 	Setting.addHeader(
 		"Cheats",
 		"Toggles + the ghost-type picker persist across reloads. The button list further down fires one-shot mutations on $state.variables — back/forward arrows can rewind those."

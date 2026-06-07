@@ -21,7 +21,7 @@
 	<</if>>
 
 	<<if _check eq 3>>
-		<<say>>There are group classes here, held daily from 12:00 to 14:00. They are free and very effective.<br><</say>>
+		<<say>>There are group classes here, held daily from <<displayTime 1200>> to <<displayTime 1400>>. They are free and very effective.<br><</say>>
 		<<mc>>Thanks for mentioning it. I'll keep that in mind.<br><</mc>>
 	<</if>>
 	<<if setup.Gym.raiseEmilyRelationship()>>

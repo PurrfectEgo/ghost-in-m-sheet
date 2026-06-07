@@ -5,7 +5,7 @@
 <<thought>>The beauty salon is a place where you can enhance your uniqueness and style. For now, only piercing services are available, but more options are promised in the future!<</thought>><br>
 <br>
 <<if not setup.Salon.isOpen()>>
-	<<thought>>Beauty Salon is not open right now (open from 08:00 to 22:00)<</thought>><br>
+	<<thought>>Beauty Salon is not open right now (open from <<displayTime 0800>> to <<displayTime 2200>>)<</thought>><br>
 <<else>>
 	<span class="enterbtn">[[Go inside|BeautySalonInside]]</span><br>
 <</if>>
